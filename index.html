@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Xudata.绪白信息社社区</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zpix-webfont@1.0.0/zpix.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@font-face{
+  font-family:'Zpix';
+  src:url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-pixel-font@master/dist/Zpix.ttf') format('truetype');
+  font-display:swap;
+}
+:root{
+  --bg:#080b14; --line:#22304d;
+  --cyan:#4ee1ff; --pink:#ff5fa2; --purple:#b388ff; --yellow:#ffe066;
+  --green:#5dff9e; --red:#ff6b6b; --orange:#ffa94d;
+  --text:#cfe3ff; --dim:#6b7fa8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  background:var(--bg); color:var(--text); font-size:14px;
+  font-family:"Consolas","Courier New",Menlo,"Microsoft YaHei",monospace;
+  overflow-x:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+  background:
+    linear-gradient(rgba(78,225,255,.03) 1px, transparent 1px) 0 0/100% 3px,
+    radial-gradient(circle at 15% 0%, rgba(78,225,255,.07), transparent 45%),
+    radial-gradient(circle at 88% 12%, rgba(255,95,162,.06), transparent 45%);
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:#0a0f1c}
+::-webkit-scrollbar-thumb{background:#22304d;border:2px solid #0a0f1c}
+
+.pixel-title{
+  font-family:'Zpix','SimHei','Microsoft YaHei',monospace;
+  font-weight:normal;
+  letter-spacing:4px;
+  line-height:1.3;
+  color:transparent;
+  background:linear-gradient(90deg,#4ee1ff 0%,#7ebeff 30%,#b388ff 60%,#ff5fa2 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 0 20px rgba(78,225,255,.35);
+  image-rendering:pixelated;
+  user-select:none;
+}
+#titleBox{text-align:center; margin:0 auto; padding:10px 0; line-height:1.15}
+#titleBox .title-line1{font-size:clamp(40px, 7.5vw, 96px); letter-spacing:4px; display:block}
+#titleBox .title-line2{font-size:clamp(28px, 5vw, 64px); letter-spacing:6px; display:block; margin-top:6px}
+#logoBox{font-size:17px; letter-spacing:2px; flex:none}
+
+.btn{
+  font-family:inherit; font-size:13px; cursor:pointer;
+  background:linear-gradient(180deg,#1b2a47,#101a2e); color:var(--cyan);
+  border:2px solid var(--cyan); padding:7px 14px;
+  box-shadow:3px 3px 0 rgba(78,225,255,.22); transition:.12s; white-space:nowrap;
+}
+.btn:hover{transform:translate(-1px,-1px); box-shadow:5px 5px 0 rgba(78,225,255,.3)}
+.btn:active{transform:translate(2px,2px); box-shadow:0 0 0}
+.btn.pink{color:var(--pink); border-color:var(--pink)}
+.btn.green{color:var(--green); border-color:var(--green)}
+.btn.yellow{color:var(--yellow); border-color:var(--yellow)}
+.btn.red{color:var(--red); border-color:var(--red)}
+.btn.purple{color:var(--purple); border-color:var(--purple)}
+.btn.ghost{color:var(--dim); border-color:var(--line); box-shadow:3px 3px 0 rgba(34,48,77,.6)}
+.btn.ghost:hover{color:var(--text); border-color:#3a4d75}
+.btn.sm{padding:4px 9px; font-size:12px; box-shadow:2px 2px 0 rgba(78,225,255,.2)}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none!important}
+
+input,select,textarea{
+  width:100%; font-family:inherit; font-size:13px; color:var(--text);
+  background:#0a0f1c; border:2px solid var(--line); padding:9px 11px; outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+textarea{resize:vertical; min-height:80px; line-height:1.6; font-family:inherit}
+label{display:block; font-size:12px; color:var(--dim); margin:0 0 5px; letter-spacing:1px}
+.field{margin-bottom:14px}
+.row{display:flex; gap:12px; flex-wrap:wrap}
+.row>*{flex:1; min-width:150px}
+
+.card{
+  background:linear-gradient(180deg,rgba(19,27,46,.9),rgba(14,20,36,.9));
+  border:2px solid var(--line); padding:16px; position:relative;
+}
+.card::before{content:''; position:absolute; left:-2px; top:-2px; width:14px; height:14px; border-left:3px solid var(--cyan); border-top:3px solid var(--cyan)}
+.card::after{content:''; position:absolute; right:-2px; bottom:-2px; width:14px; height:14px; border-right:3px solid var(--cyan); border-bottom:3px solid var(--cyan)}
+.card h3{font-size:14px; letter-spacing:2px; color:var(--cyan); margin-bottom:14px; font-weight:700}
+
+.tag{display:inline-block; font-size:11px; padding:2px 8px; border:1px solid currentColor; letter-spacing:1px; line-height:1.5}
+.tag.cyan{color:var(--cyan)} .tag.pink{color:var(--pink)} .tag.purple{color:var(--purple)}
+.tag.yellow{color:var(--yellow)} .tag.green{color:var(--green)} .tag.red{color:var(--red)}
+.tag.dim{color:var(--dim)} .tag.orange{color:var(--orange)}
+
+table{width:100%; border-collapse:collapse; font-size:13px}
+th,td{padding:9px 10px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
+th{color:var(--dim); font-size:11px; letter-spacing:1px; font-weight:400; background:rgba(10,15,28,.6)}
+tbody tr:hover{background:rgba(78,225,255,.04)}
+.mono{font-family:"Consolas",monospace; letter-spacing:.5px}
+.dim{color:var(--dim)}
+.table-wrap{overflow-x:auto}
+
+#loadingScreen{display:none; place-items:center; min-height:100vh; font-size:14px; color:var(--cyan); letter-spacing:4px; position:fixed; inset:0; background:var(--bg); z-index:999}
+#loadingScreen.on{display:grid}
+
+#loginPage{min-height:100vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:30px 16px; position:relative; z-index:2}
+#loginPage.on{display:flex}
+.title-box{width:100%; max-width:1000px; text-align:center; margin-bottom:10px}
+.subtitle{margin-top:12px; font-size:12px; letter-spacing:8px; color:var(--dim); text-transform:uppercase}
+.divider{width:min(560px,90vw); height:2px; margin:22px auto; background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,transparent 6px 12px); opacity:.5}
+.login-card{width:min(420px,92vw); background:rgba(14,20,36,.92); border:2px solid var(--line); padding:26px 24px; position:relative}
+.login-card::before,.login-card::after{content:''; position:absolute; width:16px; height:16px}
+.login-card::before{left:-2px;top:-2px;border-left:3px solid var(--pink);border-top:3px solid var(--pink)}
+.login-card::after{right:-2px;bottom:-2px;border-right:3px solid var(--pink);border-bottom:3px solid var(--pink)}
+.login-card h2{font-size:13px; letter-spacing:4px; color:var(--pink); margin-bottom:20px; text-align:center}
+.guest-btn{margin-top:12px; width:100%; padding:10px; letter-spacing:2px}
+
+#appPage{display:none; min-height:100vh; position:relative; z-index:2}
+#appPage.on{display:block}
+.topbar{position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px; padding:9px 16px; background:rgba(8,11,20,.94); border-bottom:2px solid var(--line); backdrop-filter:blur(8px)}
+.topbar .spacer{flex:1}
+.user-chip{display:flex; align-items:center; gap:8px; font-size:12px; padding:5px 11px; border:2px solid var(--line); background:rgba(10,15,28,.7)}
+.avatar{width:22px; height:22px; display:grid; place-items:center; font-size:11px; background:linear-gradient(135deg,var(--cyan),var(--purple)); color:#06101f; font-weight:700; flex:none}
+.layout{display:flex; min-height:calc(100vh - 53px)}
+.sidebar{width:200px; flex:0 0 200px; border-right:2px solid var(--line); padding:12px 9px; background:rgba(10,14,26,.55)}
+.nav-item{display:flex; align-items:center; gap:9px; padding:9px 11px; font-size:13px; color:var(--dim); cursor:pointer; border-left:3px solid transparent; transition:.13s; user-select:none}
+.nav-item:hover{color:var(--text); background:rgba(78,225,255,.05)}
+.nav-item.on{color:var(--cyan); border-left-color:var(--cyan); background:rgba(78,225,255,.08)}
+.nav-item .ic{font-size:14px; width:16px; text-align:center}
+.nav-sep{height:1px; background:var(--line); margin:10px 6px}
+.content{flex:1; padding:18px; min-width:0; overflow-x:hidden}
+
+.page-head{display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap}
+.page-head h2{font-size:16px; letter-spacing:3px; color:var(--text); font-weight:700}
+.page-head h2::before{content:'▍'; color:var(--cyan); margin-right:4px}
+.page-head .spacer{flex:1}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px}
+.stat{border:2px solid var(--line); padding:14px; background:linear-gradient(180deg,rgba(19,27,46,.85),rgba(14,20,36,.7)); position:relative; overflow:hidden}
+.stat .num{font-size:26px; font-weight:700; letter-spacing:1px; line-height:1.2}
+.stat .lbl{font-size:11px; color:var(--dim); letter-spacing:2px; margin-top:4px}
+.stat .bg{position:absolute; right:-6px; bottom:-14px; font-size:52px; opacity:.06; pointer-events:none}
+
+.task{border:2px solid var(--line); border-left-width:4px; padding:13px 15px; margin-bottom:12px; background:linear-gradient(180deg,rgba(19,27,46,.7),rgba(14,20,36,.55))}
+.task.p-urgent{border-left-color:var(--red)}
+.task.p-high{border-left-color:var(--orange)}
+.task.p-normal{border-left-color:var(--cyan)}
+.task.p-low{border-left-color:var(--dim)}
+.task .t-head{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:7px}
+.task .t-head h4{font-size:14px; font-weight:700; color:var(--text)}
+.task .t-desc{font-size:12.5px; color:#9fb4d8; line-height:1.75; margin-bottom:9px; white-space:pre-wrap; word-break:break-word}
+.task .t-meta{display:flex; gap:16px; flex-wrap:wrap; font-size:11.5px; color:var(--dim); margin-bottom:10px}
+.task .t-meta b{color:#8ea6cd; font-weight:400}
+.task .t-actions{display:flex; gap:8px; flex-wrap:wrap}
+.overdue{color:var(--red)!important}
+
+.sub-list{margin:8px 0 10px; border-top:1px dashed var(--line); padding-top:8px}
+.sub-item{display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12px}
+.sub-item .nm{width:90px; color:#9fb4d8; flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sub-bar{flex:1; height:6px; background:#0a0f1c; border:1px solid var(--line); position:relative; min-width:60px}
+.sub-bar i{display:block; height:100%; background:repeating-linear-gradient(90deg,var(--cyan) 0 4px,var(--purple) 4px 8px)}
+
+.empty{text-align:center; padding:40px 16px; color:var(--dim); font-size:13px; letter-spacing:1px}
+.empty .big{font-size:34px; display:block; margin-bottom:10px; opacity:.5}
+
+#modalRoot{display:none; position:fixed; inset:0; z-index:200}
+.mask{position:absolute; inset:0; background:rgba(4,7,14,.82); backdrop-filter:blur(3px); display:grid; place-items:center; padding:18px; overflow-y:auto}
+.modal{width:100%; max-width:520px; max-height:88vh; display:flex; flex-direction:column; background:linear-gradient(180deg,#131b2e,#0e1424); border:2px solid var(--cyan); box-shadow:6px 6px 0 rgba(78,225,255,.18); margin:auto}
+.modal.wide{max-width:820px}
+.modal-head{display:flex; align-items:center; padding:12px 16px; border-bottom:2px solid var(--line); font-size:13px; letter-spacing:2px; color:var(--cyan); flex:none}
+.modal-head .x{margin-left:auto; background:none; border:none; color:var(--dim); font-size:20px; cursor:pointer; line-height:1; padding:0 4px; font-family:inherit}
+.modal-head .x:hover{color:var(--pink)}
+.modal-body{padding:18px 16px; overflow-y:auto; flex:1}
+.modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:12px 16px; border-top:2px solid var(--line); flex:none}
+
+#toastRoot{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:300; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none}
+.toast{padding:9px 20px; font-size:13px; border:2px solid; background:rgba(10,15,28,.96); letter-spacing:1px; box-shadow:4px 4px 0 rgba(0,0,0,.5)}
+.toast.ok{color:var(--green); border-color:var(--green)}
+.toast.err{color:var(--red); border-color:var(--red)}
+.toast.info{color:var(--cyan); border-color:var(--cyan)}
+
+.announce{border:2px solid var(--line); border-left:4px solid var(--purple); padding:12px 15px; margin-bottom:10px; background:rgba(19,27,46,.5)}
+.announce h4{font-size:13px; color:var(--purple); margin-bottom:6px}
+.announce p{font-size:12.5px; color:#9fb4d8; line-height:1.8; white-space:pre-wrap}
+.announce .time{font-size:11px; color:var(--dim); margin-top:7px}
+
+.log-item{display:flex; gap:12px; padding:8px 4px; border-bottom:1px solid rgba(34,48,77,.55); font-size:12.5px}
+.log-item .t{color:var(--dim); flex:none; font-size:11.5px}
+.log-item .m{color:#9fb4d8; word-break:break-all}
+
+.pwd-old{color:var(--dim); text-decoration:line-through}
+.pwd-new{color:var(--yellow)}
+
+.sync-bar{position:fixed; bottom:0; left:0; right:0; z-index:150; padding:6px 16px; font-size:11.5px; display:flex; align-items:center; gap:10px; background:rgba(8,11,20,.92); border-top:1px solid var(--line); transform:translateY(100%); transition:.25s}
+.sync-bar.on{transform:translateY(0)}
+.sync-dot{width:8px; height:8px; border-radius:50%; background:var(--green); flex:none}
+.sync-dot.busy{background:var(--yellow); animation:pulse .8s infinite}
+@keyframes pulse{50%{opacity:.3}}
+
+.gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px}
+.g-item{border:2px solid var(--line); background:#0a0f1c; position:relative; overflow:hidden}
+.g-item:hover{border-color:var(--cyan)}
+.g-item img{width:100%; height:150px; object-fit:cover; display:block; cursor:zoom-in}
+.g-item .cap{padding:8px 10px; font-size:12px; color:#9fb4d8; line-height:1.6; border-top:1px solid var(--line); word-break:break-word}
+.g-item .cap .tm{font-size:10.5px; color:var(--dim); margin-top:3px}
+.g-item .del{position:absolute; top:6px; right:6px; opacity:0; transition:.15s}
+.g-item:hover .del{opacity:1}
+
+.post{border:2px solid var(--line); padding:14px; margin-bottom:14px; background:linear-gradient(180deg,rgba(19,27,46,.7),rgba(14,20,36,.55))}
+.post:hover{border-color:#31456e}
+.post-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+.post-head .avatar{width:34px;height:34px;font-size:15px}
+.post-head .who{flex:1; min-width:0}
+.post-head .who .nm{font-size:13px; color:var(--text)}
+.post-head .who .mt{font-size:11px; color:var(--dim); margin-top:2px}
+.post-body{font-size:13px; line-height:1.85; color:#b9cbe8; white-space:pre-wrap; word-break:break-word; margin-bottom:10px}
+.post-imgs{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-bottom:10px}
+.post-imgs img{width:100%; height:120px; object-fit:cover; border:2px solid var(--line); cursor:zoom-in; display:block}
+.post-foot{display:flex; align-items:center; gap:14px; font-size:12px; color:var(--dim); border-top:1px dashed var(--line); padding-top:10px}
+.post-foot .lk{cursor:pointer; user-select:none; transition:.13s}
+.post-foot .lk:hover{color:var(--cyan)}
+.post-foot .lk.on{color:var(--pink)}
+.post-foot .del{margin-left:auto}
+.cmt{margin-top:10px; border-top:1px dashed var(--line); padding-top:10px}
+.cmt-item{display:flex; gap:8px; padding:5px 0; font-size:12.5px; line-height:1.7}
+.cmt-item .cn{color:var(--purple); flex:none; font-weight:700}
+.cmt-item .ct{color:#9fb4d8; word-break:break-word; flex:1}
+.cmt-item .cx{color:var(--dim); cursor:pointer; flex:none; font-size:11px}
+.cmt-item .cx:hover{color:var(--red)}
+.cmt-input{display:flex; gap:8px; margin-top:9px}
+.cmt-input input{padding:6px 10px; font-size:12.5px}
+
+.img-view{position:fixed; inset:0; z-index:400; background:rgba(2,4,9,.95); display:grid; place-items:center; padding:24px; cursor:zoom-out}
+.img-view img{max-width:100%; max-height:100%; border:2px solid var(--cyan)}
+
+.coop{border:2px solid var(--line); border-left:4px solid var(--cyan); padding:13px 15px; margin-bottom:12px; background:linear-gradient(180deg,rgba(19,27,46,.7),rgba(14,20,36,.55))}
+.coop .c-head{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:8px}
+.coop .c-head h4{font-size:14px; color:var(--text); font-weight:700}
+.coop .c-meta{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--dim); margin-bottom:8px}
+.coop .c-desc{font-size:12.5px; color:#9fb4d8; line-height:1.8; white-space:pre-wrap; padding:10px; background:rgba(10,15,28,.5); border:1px dashed var(--line); margin-bottom:9px}
+
+.apply{border:2px solid var(--line); border-left:4px solid var(--pink); padding:13px 15px; margin-bottom:12px; background:linear-gradient(180deg,rgba(19,27,46,.7),rgba(14,20,36,.55))}
+.apply .a-head{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:8px}
+.apply .a-head h4{font-size:14px; color:var(--text); font-weight:700}
+.apply .a-meta{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--dim); margin-bottom:8px}
+.apply .a-desc{font-size:12.5px; color:#9fb4d8; line-height:1.8; white-space:pre-wrap; padding:10px; background:rgba(10,15,28,.5); border:1px dashed var(--line); margin-bottom:9px}
+
+.activity{border:2px solid var(--line); border-left:4px solid var(--green); padding:14px; margin-bottom:14px; background:linear-gradient(180deg,rgba(19,27,46,.7),rgba(14,20,36,.55))}
+.activity h4{font-size:15px; color:var(--green); margin-bottom:8px}
+.activity .a-body{font-size:13px; color:#b9cbe8; line-height:1.85; white-space:pre-wrap; margin-bottom:12px}
+.activity .a-imgs{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; margin-bottom:10px}
+.activity .a-imgs img{width:100%; height:120px; object-fit:cover; border:2px solid var(--line); cursor:zoom-in; display:block}
+.activity .a-meta{font-size:11px; color:var(--dim); border-top:1px dashed var(--line); padding-top:8px}
+
+.guest-banner{
+  background:linear-gradient(90deg,rgba(255,224,102,.12),rgba(255,95,162,.12));
+  border:2px solid var(--yellow);
+  padding:10px 16px; margin-bottom:16px; font-size:12.5px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.guest-banner .ic{font-size:18px}
+.guest-banner .txt{flex:1; color:#e8e0b8}
+
+.forum-locked{
+  text-align:center; padding:60px 20px;
+  border:2px solid var(--red); background:rgba(255,107,107,.05);
+}
+.forum-locked .lock-icon{font-size:52px; opacity:.5; margin-bottom:14px}
+.forum-locked .lock-title{font-size:15px; color:var(--red); letter-spacing:3px; margin-bottom:10px}
+.forum-locked .lock-desc{font-size:12.5px; color:var(--dim); line-height:1.9}
+
+@media (max-width:820px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%; flex:none; border-right:none; border-bottom:2px solid var(--line); display:flex; overflow-x:auto; gap:4px; padding:8px}
+  .nav-item{border-left:none; border-bottom:3px solid transparent; white-space:nowrap; padding:7px 11px}
+  .nav-item.on{border-left:none; border-bottom-color:var(--cyan)}
+  .nav-sep{display:none}
+  .content{padding:12px}
+  .user-chip .uname{display:none}
+}
+
+body.mobile{font-size:13px}
+body.mobile .topbar{padding:8px 12px; gap:8px}
+body.mobile #logoBox{font-size:14px; letter-spacing:1px}
+body.mobile .user-chip{padding:4px 8px; gap:6px; font-size:11px}
+body.mobile .user-chip .uname{display:none}
+body.mobile .layout{flex-direction:column}
+body.mobile .sidebar{
+  position:fixed; bottom:0; left:0; right:0;
+  width:100%; flex:none; border-right:none;
+  border-top:2px solid var(--line);
+  background:rgba(8,11,20,.97);
+  backdrop-filter:blur(8px);
+  display:flex; overflow-x:auto; overflow-y:hidden;
+  padding:6px 4px; gap:2px; z-index:60;
+  scrollbar-width:none;
+}
+body.mobile .sidebar::-webkit-scrollbar{display:none}
+body.mobile .nav-item{
+  flex:0 0 auto; flex-direction:column; gap:3px;
+  padding:6px 10px; border-left:none;
+  border-top:2px solid transparent; border-bottom:none;
+  font-size:10.5px; min-width:56px; text-align:center;
+}
+body.mobile .nav-item .ic{font-size:18px; width:auto}
+body.mobile .nav-item.on{
+  border-left:none; border-top-color:var(--cyan);
+  background:transparent;
+  text-shadow:0 0 8px rgba(78,225,255,.5);
+}
+body.mobile .nav-sep{display:none}
+body.mobile .content{padding:12px 12px 80px}
+body.mobile .page-head{flex-direction:column; align-items:stretch; gap:8px; margin-bottom:12px}
+body.mobile .page-head h2{font-size:15px}
+body.mobile .page-head .spacer{display:none}
+body.mobile .page-head .btn{width:100%}
+body.mobile #taskSearchInput{width:100%!important}
+body.mobile .card{padding:12px}
+body.mobile .card h3{font-size:13px; margin-bottom:10px}
+body.mobile .stats{grid-template-columns:repeat(2,1fr); gap:8px}
+body.mobile .stat{padding:10px}
+body.mobile .stat .num{font-size:22px}
+body.mobile .stat .lbl{font-size:10px; letter-spacing:1px}
+body.mobile .stat .bg{font-size:40px}
+body.mobile .task{padding:11px 12px}
+body.mobile .task .t-head h4{font-size:13px}
+body.mobile .task .t-meta{flex-direction:column; gap:4px; font-size:11px}
+body.mobile .task .t-actions{gap:6px}
+body.mobile .task .t-actions .btn{font-size:11.5px; padding:5px 9px}
+body.mobile .sub-item{font-size:11px; flex-wrap:wrap}
+body.mobile .sub-item .nm{width:60px}
+body.mobile .sub-bar{min-width:40px}
+body.mobile .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
+body.mobile table{font-size:12px}
+body.mobile th,body.mobile td{padding:7px 6px}
+body.mobile th{font-size:10px}
+body.mobile table select{padding:2px 4px; font-size:11px; min-width:100px}
+body.mobile .card .btn.sm{font-size:11px; padding:5px 9px}
+body.mobile .post{padding:12px}
+body.mobile .post-body{font-size:13px}
+body.mobile .post-imgs{grid-template-columns:repeat(2,1fr); gap:6px}
+body.mobile .post-imgs img{height:110px}
+body.mobile .cmt-input input{padding:6px 8px; font-size:12px}
+body.mobile .cmt-item{font-size:12px}
+body.mobile .gallery{grid-template-columns:repeat(2,1fr); gap:8px}
+body.mobile .g-item img{height:110px}
+body.mobile .g-item .cap{font-size:11px; padding:6px 8px}
+body.mobile .activity .a-imgs{grid-template-columns:repeat(2,1fr); gap:6px}
+body.mobile .mask{padding:0; align-items:flex-end}
+body.mobile .modal{max-width:100%; max-height:92vh; border-left:none; border-right:none; border-bottom:none; border-radius:8px 8px 0 0; margin:0}
+body.mobile .modal.wide{max-width:100%}
+body.mobile .modal-head{padding:14px 16px}
+body.mobile .modal-body{padding:14px 16px}
+body.mobile .modal-foot{padding:12px 16px}
+body.mobile input,body.mobile select,body.mobile textarea{font-size:14px; padding:10px 12px}
+body.mobile .btn{padding:9px 14px; font-size:13px}
+body.mobile .btn.sm{padding:6px 10px; font-size:12px}
+body.mobile #toastRoot{top:60px; width:calc(100% - 24px); left:12px; transform:none}
+body.mobile .toast{width:100%; text-align:center; font-size:12.5px; padding:8px 14px}
+body.mobile .sync-bar{bottom:60px; padding:5px 12px; font-size:11px}
+body.mobile .sync-bar:not(.on){display:none}
+body.mobile #titleBox{line-height:1.15}
+body.mobile #titleBox .title-line1{font-size:clamp(34px, 12vw, 60px); letter-spacing:2px}
+body.mobile #titleBox .title-line2{font-size:clamp(22px, 8vw, 42px); letter-spacing:3px; margin-top:4px}
+body.mobile .login-card{padding:22px 18px}
+body.mobile .subtitle{font-size:10px; letter-spacing:4px}
+body.mobile .guest-banner{padding:8px 12px; font-size:12px}
+@media (max-width:900px) and (orientation:landscape){
+  body.mobile .stats{grid-template-columns:repeat(4,1fr)}
+  body.mobile .post-imgs{grid-template-columns:repeat(3,1fr)}
+  body.mobile .gallery{grid-template-columns:repeat(3,1fr)}
+  body.mobile .activity .a-imgs{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen" class="on">▸ 正在连接云端 …</div>
+
+<div id="loginPage">
+  <div class="title-box">
+    <div id="titleBox" class="pixel-title">
+      <div class="title-line1">Xudata.</div>
+      <div class="title-line2">绪白信息社社区</div>
+    </div>
+    <div class="subtitle">Xudata · Xubai Information Agency</div>
+  </div>
+  <div class="divider"></div>
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h2>◤ 身份验证 ◢</h2>
+    <div class="field"><label>账号</label><input id="loginUser" placeholder="请输入账号" autocomplete="off"></div>
+    <div class="field"><label>密码</label><input id="loginPass" type="password" placeholder="请输入密码" autocomplete="off"></div>
+    <button class="btn" type="submit" style="width:100%; padding:10px; letter-spacing:4px" id="loginBtn">登 录</button>
+    <button class="btn ghost guest-btn" type="button" data-act="enter-guest">👤 游客访问</button>
+    <div style="font-size:11px; color:var(--dim); text-align:center; margin-top:10px; line-height:1.7">
+      游客可查看：社团风采 · 社团活动 · 社团合作 · 我要入社 · 游客论坛
+    </div>
+  </form>
+</div>
+
+<div id="appPage">
+  <div class="topbar">
+    <div id="logoBox" class="pixel-title">Xudata.绪白信息社社区</div>
+    <div class="spacer"></div>
+    <div class="user-chip">
+      <div class="avatar" id="avatarBox">?</div>
+      <span class="uname" id="topName">—</span>
+      <span id="topRole"></span>
+    </div>
+    <button class="btn sm ghost" data-act="logout">退出</button>
+  </div>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<div class="sync-bar" id="syncBar"><span class="sync-dot" id="syncDot"></span><span id="syncText">就绪</span></div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ============================================================
+   Xudata.绪白信息社社区 · Supabase 版
+   ============================================================ */
+const SUPABASE_URL = 'https://ysgsdklofsuzapwzwfhu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZ3Nka2xvZnN1emFwd3p3Zmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMTY0OTYsImV4cCI6MjEwNjY5MjQ5Nn0.uBynT3K5ueSAm_a9sZ3HDxkWcKUT1M2sf68_V7izQQQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const DEPTS = ['技术部','数据部','宣传部','核心管理','未分组','社长','技术副社','宣传副社','技术部长','数据部长','宣传部长'];
+const DEF_PWD = '123456';
+const COOP_TYPES = ['软件开发','网站开发','小工具开发','其他'];
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+function fmtTime(t){ if(!t) return '—'; const d=new Date(t); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function fmtDate(t){ if(!t) return ''; const d=new Date(t); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function todayStr(){ return fmtDate(Date.now()); }
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type; el.textContent = msg;
+  $('#toastRoot').appendChild(el);
+  setTimeout(()=>{ el.style.transition='.3s'; el.style.opacity='0'; el.style.transform='translateY(-10px)'; }, 2100);
+  setTimeout(()=>el.remove(), 2600);
+}
+function relTime(t){
+  const d = Date.now() - new Date(t).getTime();
+  if(d < 60000) return '刚刚';
+  if(d < 3600000) return Math.floor(d/60000) + ' 分钟前';
+  if(d < 86400000) return Math.floor(d/3600000) + ' 小时前';
+  if(d < 2592000000) return Math.floor(d/86400000) + ' 天前';
+  return fmtTime(t);
+}
+let syncTimer = null;
+function showSync(text, busy){
+  const bar = $('#syncBar'), dot = $('#syncDot');
+  if(!bar) return;
+  bar.classList.add('on'); $('#syncText').textContent = text;
+  dot.classList.toggle('busy', !!busy);
+  clearTimeout(syncTimer);
+  if(!busy) syncTimer = setTimeout(()=>bar.classList.remove('on'), 1800);
+}
+
+function detectDevice(){
+  const ua = navigator.userAgent || '';
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const width = window.innerWidth;
+  const uaMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Windows Phone/i.test(ua);
+  const isMobile = (uaMobile && width < 1024) || (isTouch && width < 820);
+  document.body.classList.toggle('mobile', isMobile);
+  document.body.classList.toggle('desktop', !isMobile);
+}
+
+const cache = {
+  users: [], tasks: [], taskAssignees: [], taskHistory: [],
+  announcements: [], gallery: [], activities: [],
+  posts: [], postsGuest: [], likes: [], comments: [],
+  cooperations: [], applications: [], logs: [], settings: {}
+};
+let session = null;
+let guestMode = false;
+let currentView = 'gallery';
+let memberDeptFilter = 'all';
+let guestBoardView = 'member';
+
+const GUEST_ALLOWED = ['gallery','coop','join','activity','guestforum'];
+
+async function loadAll(){
+  showSync('正在同步云端数据…', true);
+  const [u, t, ta, th, a, g, act, p, pg, l, c, cp, ap, lg, st] = await Promise.all([
+    sb.from('users').select('*').order('created_at'),
+    sb.from('tasks').select('*').order('created_at', { ascending:false }),
+    sb.from('task_assignees').select('*'),
+    sb.from('task_history').select('*').order('created_at'),
+    sb.from('announcements').select('*').order('created_at', { ascending:false }),
+    sb.from('gallery').select('*').order('created_at', { ascending:false }),
+    sb.from('activities').select('*').order('created_at', { ascending:false }),
+    sb.from('posts').select('*').order('created_at', { ascending:false }),
+    sb.from('posts_guest').select('*').order('created_at', { ascending:false }),
+    sb.from('post_likes').select('*'),
+    sb.from('comments').select('*').order('created_at'),
+    sb.from('cooperations').select('*').order('created_at', { ascending:false }),
+    sb.from('applications').select('*').order('created_at', { ascending:false }),
+    sb.from('logs').select('*').order('created_at', { ascending:false }).limit(300),
+    sb.from('settings').select('*')
+  ]);
+  if(u.error) throw u.error;
+  cache.users = u.data || [];
+  cache.tasks = t.data || [];
+  cache.taskAssignees = ta.data || [];
+  cache.taskHistory = th.data || [];
+  cache.announcements = a.data || [];
+  cache.gallery = g.data || [];
+  cache.activities = act.data || [];
+  cache.posts = p.data || [];
+  cache.postsGuest = pg.data || [];
+  cache.likes = l.data || [];
+  cache.comments = c.data || [];
+  cache.cooperations = cp.data || [];
+  cache.applications = ap.data || [];
+  cache.logs = lg.data || [];
+  cache.settings = {};
+  (st.data || []).forEach(s => { cache.settings[s.key] = s.value; });
+  showSync('已同步 · ' + fmtTime(Date.now()), false);
+}
+
+function currentUser(){ return session ? cache.users.find(u => u.id === session) || null : null; }
+function userName(id){ const u = cache.users.find(x => x.id === id); return u ? u.name : '已注销'; }
+function userDept(id){ const u = cache.users.find(x => x.id === id); return u ? (u.dept||'未分组') : '—'; }
+function getTaskAssignees(taskId){ return cache.taskAssignees.filter(x => x.task_id === taskId); }
+function getMySub(taskId, userId){ return cache.taskAssignees.find(x => x.task_id === taskId && x.user_id === userId) || null; }
+function getTaskHistory(taskId){ return cache.taskHistory.filter(x => x.task_id === taskId); }
+function getPostLikes(postId){ return cache.likes.filter(x => x.post_id === postId); }
+function getPostComments(postId){ return cache.comments.filter(x => x.post_id === postId); }
+
+function getRole(){
+  if(guestMode) return 'guest';
+  const u = currentUser();
+  return u ? u.role : 'guest';
+}
+
+const PRI_MAP = { urgent:{label:'紧急',cls:'red'}, high:{label:'高',cls:'orange'}, normal:{label:'普通',cls:'cyan'}, low:{label:'低',cls:'dim'} };
+const STATUS_MAP = { pending:{label:'待接受',cls:'yellow'}, doing:{label:'进行中',cls:'cyan'}, review:{label:'待审核',cls:'purple'}, done:{label:'已完成',cls:'green'} };
+
+function taskOverall(t){
+  const subs = getTaskAssignees(t.id);
+  if(!subs.length) return 'pending';
+  if(subs.every(s => s.status === 'done')) return 'done';
+  if(subs.some(s => s.status === 'review')) return 'review';
+  if(subs.some(s => s.status === 'doing')) return 'doing';
+  return 'pending';
+}
+function taskVisible(u, t){
+  if(!u) return false;
+  if(u.role === 'admin') return true;
+  return getTaskAssignees(t.id).some(s => s.user_id === u.id);
+}
+function isOverdue(t){
+  if(!t.deadline || taskOverall(t) === 'done') return false;
+  return t.deadline < todayStr();
+}
+
+async function log(type, text, actor){
+  try{ await sb.from('logs').insert({ type, text, actor: actor || '系统' }); }
+  catch(e){ console.warn('日志写入失败', e); }
+}
+
+/* ================= 登录 / 游客 ================= */
+async function doLogin(username, password){
+  username = username.trim();
+  if(!username || !password) return { ok:false, msg:'账号和密码不能为空' };
+  const u = cache.users.find(x => x.username.toLowerCase() === username.toLowerCase());
+  if(!u) return { ok:false, msg:'账号不存在' };
+  if(!u.active) return { ok:false, msg:'该账号已被禁用，请联系管理员' };
+  if(u.password !== password) return { ok:false, msg:'密码错误' };
+  session = u.id;
+  guestMode = false;
+  localStorage.setItem('xudata_session', u.id);
+  localStorage.removeItem('xudata_guest');
+  await log('登录', `用户 ${u.name}（${u.username}）登录系统`, u.name);
+  return { ok:true };
+}
+function enterGuest(){
+  session = null;
+  guestMode = true;
+  localStorage.setItem('xudata_guest', '1');
+  localStorage.removeItem('xudata_session');
+  currentView = 'gallery';
+  showGuestApp();
+  toast('已进入游客模式', 'info');
+}
+async function logout(){
+  const u = currentUser();
+  if(u){ await log('登录', `用户 ${u.name} 退出系统`, u.name); }
+  session = null;
+  guestMode = false;
+  localStorage.removeItem('xudata_session');
+  localStorage.removeItem('xudata_guest');
+  $('#appPage').classList.remove('on');
+  $('#loginPage').classList.add('on');
+  $('#loginForm').reset();
+  toast('已安全退出', 'info');
+}
+
+/* ================= 导航 ================= */
+const NAV_ITEMS = [
+  { id:'dashboard',  icon:'▣', label:'仪表盘',   roles:['admin','member'] },
+  { id:'tasks',      icon:'✦', label:'任务中心', roles:['admin','member'] },
+  { id:'forum',      icon:'✎', label:'社团论坛', roles:['admin','member'] },
+  { id:'gallery',    icon:'❖', label:'社团风采', roles:['admin','member','guest'] },
+  { id:'activity',   icon:'◎', label:'社团活动', roles:['admin','member','guest'] },
+  { id:'coop',       icon:'⇄', label:'社团合作', roles:['admin','member','guest'] },
+  { id:'join',       icon:'⊕', label:'我要入社', roles:['admin','member','guest'] },
+  { id:'guestforum', icon:'🌐', label:'游客论坛', roles:['admin','member','guest'] },
+  { id:'members',    icon:'☰', label:'人员管理', roles:['admin'] },
+  { id:'announce',   icon:'◈', label:'公告管理', roles:['admin'] },
+  { id:'logs',       icon:'≡', label:'操作日志', roles:['admin'] },
+  { id:'data',       icon:'⚙', label:'数据管理', roles:['admin'] },
+  { sep:true },
+  { id:'password',   icon:'✱', label:'修改密码', roles:['admin','member'] },
+  { id:'profile',    icon:'◉', label:'个人中心', roles:['admin','member'] }
+];
+
+function showGuestApp(){
+  $('#loginPage').classList.remove('on');
+  $('#appPage').classList.add('on');
+  $('#avatarBox').textContent = '游';
+  $('#topName').textContent = '游客';
+  $('#topRole').innerHTML = '<span class="tag yellow">访客</span>';
+  $('#sidebar').innerHTML = NAV_ITEMS.filter(it => !it.sep && it.roles.includes('guest')).map(it =>
+    `<div class="nav-item ${currentView===it.id?'on':''}" data-nav="${it.id}"><span class="ic">${it.icon}</span><span>${it.label}</span></div>`
+  ).join('');
+  renderView();
+}
+
+function showApp(){
+  const u = currentUser();
+  if(!u){ logout(); return; }
+  guestMode = false;
+  $('#loginPage').classList.remove('on');
+  $('#appPage').classList.add('on');
+  $('#avatarBox').textContent = (u.name || u.username).slice(0,1);
+  $('#topName').textContent = u.name;
+  $('#topRole').innerHTML = u.role==='admin' ? '<span class="tag pink">管理员</span>' : '<span class="tag cyan">社员</span>';
+  $('#sidebar').innerHTML = NAV_ITEMS.map(it=>{
+    if(it.sep) return '<div class="nav-sep"></div>';
+    if(!it.roles.includes(u.role)) return '';
+    return `<div class="nav-item ${currentView===it.id?'on':''}" data-nav="${it.id}"><span class="ic">${it.icon}</span><span>${it.label}</span></div>`;
+  }).join('');
+  renderView();
+}
+
+function switchView(v){
+  const role = getRole();
+  const item = NAV_ITEMS.find(i=>i.id===v);
+  if(!item || !item.roles.includes(role)) return;
+  currentView = v;
+  $$('.nav-item').forEach(n=>n.classList.toggle('on', n.dataset.nav===v));
+  renderView();
+  if(document.body.classList.contains('mobile')){
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+}
+
+function renderView(){
+  const u = currentUser();
+
+  if(!guestMode){
+    if(!u){ logout(); return; }
+    if(!u.active){ toast('你的账号已被禁用','err'); logout(); return; }
+  }
+
+  if(guestMode && !GUEST_ALLOWED.includes(currentView)){
+    currentView = 'gallery';
+  }
+
+  const map = {
+    dashboard:viewDashboard, tasks:viewTasks, forum:viewForum,
+    gallery:viewGallery, activity:viewActivity, coop:viewCoop, join:viewJoin,
+    guestforum:viewGuestForum,
+    members:viewMembers, announce:viewAnnounce, logs:viewLogs, data:viewData,
+    password:viewPassword, profile:viewProfile
+  };
+  const fn = map[currentView];
+  $('#content').innerHTML = fn ? fn(u) : '<div class="empty">页面不存在</div>';
+}
+
+function guestBanner(){
+  return `<div class="guest-banner">
+    <span class="ic">👤</span>
+    <span class="txt">你当前以<b>游客身份</b>浏览，可以查看社团风采、社团活动、社团合作、我要入社、游客论坛。如需发帖、评论等完整功能，请登录。</span>
+  </div>`;
+}
+
+/* ================= 仪表盘 ================= */
+function viewDashboard(u){
+  if(!u) return '<div class="empty">请先登录</div>';
+  const isAd = u.role==='admin';
+  const scope = cache.tasks.filter(t => taskVisible(u, t));
+  const pendingCoop = cache.cooperations.filter(c => c.status === 'pending').length;
+  const pendingApply = cache.applications.filter(a => a.status === 'pending').length;
+  const statCards = isAd ? `
+    <div class="stat"><div class="num" style="color:var(--cyan)">${cache.users.filter(x=>x.role==='member').length}</div><div class="lbl">社员总数</div><div class="bg">☰</div></div>
+    <div class="stat"><div class="num" style="color:var(--pink)">${cache.users.filter(x=>x.role==='admin').length}</div><div class="lbl">管理员</div><div class="bg">★</div></div>
+    <div class="stat"><div class="num" style="color:var(--orange)">${pendingCoop}</div><div class="lbl">合作待处理</div><div class="bg">⇄</div></div>
+    <div class="stat"><div class="num" style="color:var(--yellow)">${pendingApply}</div><div class="lbl">入社待处理</div><div class="bg">⊕</div></div>
+    <div class="stat"><div class="num" style="color:var(--purple)">${scope.filter(t=>taskOverall(t)==='review').length}</div><div class="lbl">待审核任务</div><div class="bg">◈</div></div>
+  ` : `
+    <div class="stat"><div class="num" style="color:var(--yellow)">${scope.filter(t=>(getMySub(t.id,u.id)||{}).status==='pending').length}</div><div class="lbl">待接受</div><div class="bg">◷</div></div>
+    <div class="stat"><div class="num" style="color:var(--cyan)">${scope.filter(t=>(getMySub(t.id,u.id)||{}).status==='doing').length}</div><div class="lbl">进行中</div><div class="bg">✦</div></div>
+    <div class="stat"><div class="num" style="color:var(--purple)">${scope.filter(t=>(getMySub(t.id,u.id)||{}).status==='review').length}</div><div class="lbl">待审核</div><div class="bg">◈</div></div>
+    <div class="stat"><div class="num" style="color:var(--green)">${scope.filter(t=>(getMySub(t.id,u.id)||{}).status==='done').length}</div><div class="lbl">已完成</div><div class="bg">✓</div></div>
+  `;
+  const anns = cache.announcements.slice(0,3).map(a=>`<div class="announce"><h4>◈ ${esc(a.title)}</h4><p>${esc(a.content)}</p><div class="time">${fmtTime(a.created_at)} · ${esc(a.author)}</div></div>`).join('') || '<div class="empty"><span class="big">◈</span>暂无公告</div>';
+  const recent = scope.slice(0,4).map(t=>{
+    const ov = taskOverall(t), pr = PRI_MAP[t.priority] || PRI_MAP.normal;
+    return `<div class="task p-${t.priority}" style="margin-bottom:9px">
+      <div class="t-head"><span class="tag ${pr.cls}">${pr.label}</span><h4>${esc(t.title)}</h4><span class="tag ${STATUS_MAP[ov].cls}">${STATUS_MAP[ov].label}</span></div>
+      <div class="t-meta"><span>负责人：<b>${getTaskAssignees(t.id).map(s=>userName(s.user_id)).join('、')||'未指派'}</b></span><span>截止：<b class="${isOverdue(t)?'overdue':''}">${esc(t.deadline||'无')}</b></span></div>
+    </div>`; }).join('') || '<div class="empty"><span class="big">✦</span>暂无任务</div>';
+  return `
+    <div class="page-head"><h2>仪表盘</h2><div class="spacer"></div><span class="dim" style="font-size:12px">${fmtTime(Date.now())}</span></div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:13px;line-height:2">欢迎回来，<b style="color:var(--cyan)">${esc(u.name)}</b>。当前身份：${u.role==='admin'?'<span class="tag pink">管理员</span>':'<span class="tag cyan">社员</span>'} ｜ 部门：<span class="dim">${esc(u.dept||'未分组')}</span></div>
+    </div>
+    <div class="stats">${statCards}</div>
+    <div class="card" style="margin-top:16px"><h3>✦ 最近任务</h3>${recent}</div>
+    <div class="card" style="margin-top:16px"><h3>◈ 最新公告</h3>${anns}</div>`;
+}
+
+/* ================= 任务中心 ================= */
+let taskFilter = 'all', taskSearch = '';
+function viewTasks(u){
+  if(!u) return '<div class="empty">请先登录</div>';
+  const isAd = u.role==='admin';
+  let list = cache.tasks.filter(t => taskVisible(u, t));
+  if(taskFilter !== 'all'){
+    list = list.filter(t => {
+      if(isAd) return taskOverall(t) === taskFilter;
+      const ms = getMySub(t.id, u.id); return ms && ms.status === taskFilter;
+    });
+  }
+  if(taskSearch.trim()){
+    const k = taskSearch.trim().toLowerCase();
+    list = list.filter(t => (t.title + (t.description||'')).toLowerCase().includes(k));
+  }
+  const cnt = k => cache.tasks.filter(t => taskVisible(u,t) && (k==='all' || (isAd ? taskOverall(t)===k : (getMySub(t.id,u.id)||{}).status===k))).length;
+  const tabs = [{k:'all',l:'全部'},{k:'pending',l:'待接受'},{k:'doing',l:'进行中'},{k:'review',l:'待审核'},{k:'done',l:'已完成'}];
+  const cards = list.map(t=>taskCard(t,u)).join('') || '<div class="empty"><span class="big">✦</span>暂无符合条件的任务</div>';
+  return `
+    <div class="page-head"><h2>${isAd?'任务中心':'我的任务'}</h2><div class="spacer"></div>
+      <input id="taskSearchInput" placeholder="搜索任务…" value="${esc(taskSearch)}" style="width:180px;padding:6px 10px;font-size:12px">
+      ${isAd?'<button class="btn" data-act="new-task">+ 发布任务</button>':''}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${tabs.map(t=>`<button class="btn sm ${taskFilter===t.k?'':'ghost'}" data-act="task-filter" data-k="${t.k}">${t.l} <span class="dim">(${cnt(t.k)})</span></button>`).join('')}
+    </div>
+    <div id="taskList">${cards}</div>`;
+}
+function taskCard(t, u){
+  const isAd = u.role === 'admin';
+  const pri = PRI_MAP[t.priority] || PRI_MAP.normal;
+  const overall = taskOverall(t);
+  const st = STATUS_MAP[overall];
+  const overdue = isOverdue(t);
+  const sub = getMySub(t.id, u.id);
+  const assigns = getTaskAssignees(t.id);
+
+  const subList = assigns.map(s => {
+    const aid = s.user_id;
+    const pct = s.status==='done' ? 100 : (s.status==='review' ? 80 : (s.status==='doing' ? 45 : 0));
+    const sc = STATUS_MAP[s.status] || STATUS_MAP.pending;
+    return `<div class="sub-item">
+      <span class="nm" title="${esc(userName(aid))}">${esc(userName(aid))}</span>
+      <span class="sub-bar"><i style="width:${pct}%"></i></span>
+      <span class="tag ${sc.cls}" style="font-size:10px;padding:1px 6px">${sc.label}</span>
+    </div>`;
+  }).join('');
+
+  let actions = '';
+  if(!isAd && sub){
+    if(sub.status === 'pending') actions += `<button class="btn sm" data-act="accept-task" data-id="${t.id}">接受任务</button>`;
+    if(sub.status === 'doing')   actions += `<button class="btn sm yellow" data-act="submit-task" data-id="${t.id}">提交完成</button>`;
+  }
+  if(isAd){
+    const reviewOnes = assigns.filter(s => s.status === 'review');
+    reviewOnes.forEach(s => {
+      actions += `<button class="btn sm green" data-act="approve-one" data-id="${t.id}" data-uid="${s.user_id}">✓通过 ${esc(userName(s.user_id))}</button>`;
+      actions += `<button class="btn sm yellow" data-act="reject-one" data-id="${t.id}" data-uid="${s.user_id}">✗打回 ${esc(userName(s.user_id))}</button>`;
+    });
+    actions += `<button class="btn sm red" data-act="del-task" data-id="${t.id}">删除</button>`;
+  }
+  actions += `<button class="btn sm ghost" data-act="task-detail" data-id="${t.id}">详情</button>`;
+
+  return `
+    <div class="task p-${t.priority}">
+      <div class="t-head">
+        <span class="tag ${pri.cls}">${pri.label}</span>
+        <h4>${esc(t.title)}</h4>
+        <span class="tag ${st.cls}">${st.label}</span>
+        ${overdue ? '<span class="tag red">已逾期</span>' : ''}
+        ${!isAd && sub ? `<span class="tag cyan" style="margin-left:auto">我的进度：${(STATUS_MAP[sub.status]||STATUS_MAP.pending).label}</span>` : ''}
+      </div>
+      <div class="t-desc">${esc(t.description||'')}</div>
+      <div class="t-meta">
+        <span>指派：<b>${assigns.map(s=>userName(s.user_id)+'('+userDept(s.user_id)+')').join('、')||'未指派'}</b></span>
+        <span>发布：<b>${esc(userName(t.created_by))}</b></span>
+        <span>截止：<b class="${overdue?'overdue':''}">${esc(t.deadline||'无')}</b></span>
+      </div>
+      <div class="sub-list">${subList}</div>
+      <div class="t-actions">${actions}</div>
+    </div>`;
+}
+
+/* ================= 社团论坛 ================= */
+let forumDraftImgs = [];
+let guestDraftImgs = [];
+
+function viewForum(u){
+  if(!u) return '<div class="empty">请先登录</div>';
+  const isAd = u.role === 'admin';
+  const memberOpen = cache.settings.forum_member_open !== 'false';
+
+  if(!memberOpen && !isAd){
+    return `
+      <div class="page-head"><h2>社团论坛</h2></div>
+      <div class="forum-locked">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">社团论坛已关闭</div>
+        <div class="lock-desc">管理员暂时关闭了社团论坛，请稍后再来看看。</div>
+      </div>`;
+  }
+
+  const posts = cache.posts.slice().sort((a,b) => {
+    if(a.pinned && !b.pinned) return -1;
+    if(!a.pinned && b.pinned) return 1;
+    if(a.pinned && b.pinned) return new Date(b.pinned_at||0) - new Date(a.pinned_at||0);
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+  const list = posts.map(p => {
+    const likes = getPostLikes(p.id);
+    const liked = likes.some(x => x.user_id === u.id);
+    const isOwn = p.author === u.id;
+    const canDel = isOwn || isAd;
+    const imgs = (p.images && p.images.length) ? `<div class="post-imgs">${p.images.map(src=>`<img src="${src}" data-act="view-img" data-src="${src}" loading="lazy">`).join('')}</div>` : '';
+    const cmts = getPostComments(p.id).map(c => `
+      <div class="cmt-item">
+        <span class="cn">${esc(userName(c.author))}：</span>
+        <span class="ct">${esc(c.text)}</span>
+        ${(c.author===u.id || isAd) ? `<span class="cx" data-act="del-comment" data-id="${c.id}">删除</span>` : ''}
+      </div>`).join('');
+    return `
+      <div class="post" style="${p.pinned?'border-color:var(--yellow);box-shadow:0 0 0 1px rgba(255,224,102,.3)':''}">
+        ${p.pinned ? '<div style="display:inline-block;background:var(--yellow);color:#080b14;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:2px;margin-bottom:8px">📌 置顶</div>' : ''}
+        <div class="post-head">
+          <div class="avatar">${esc((userName(p.author)||'?').slice(0,1))}</div>
+          <div class="who">
+            <div class="nm">${esc(userName(p.author))} <span class="dim" style="font-size:11px">· ${esc(userDept(p.author))}</span></div>
+            <div class="mt">${relTime(p.created_at)} · ${fmtTime(p.created_at)}</div>
+          </div>
+          ${isAd ? `<button class="btn sm ${p.pinned?'yellow':'ghost'}" data-act="pin-post" data-id="${p.id}">${p.pinned?'📌 已置顶':'📌 置顶'}</button>` : ''}
+          ${canDel ? `<button class="btn sm red del" data-act="del-post" data-id="${p.id}">删除</button>` : ''}
+        </div>
+        <div class="post-body">${esc(p.content)}</div>
+        ${imgs}
+        <div class="post-foot">
+          <span class="lk ${liked?'on':''}" data-act="like-post" data-id="${p.id}">${liked?'♥':'♡'} ${likes.length}</span>
+          <span class="lk" data-act="focus-comment" data-id="${p.id}">💬 ${getPostComments(p.id).length}</span>
+        </div>
+        <div class="cmt">
+          ${cmts}
+          <div class="cmt-input">
+            <input id="cmt_${p.id}" placeholder="写评论…" data-act="noop">
+            <button class="btn sm" data-act="add-comment" data-id="${p.id}">评论</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('') || '<div class="empty"><span class="big">✎</span>还没有帖子，来发第一条吧</div>';
+
+  return `
+    <div class="page-head"><h2>社团论坛</h2><div class="spacer"></div>
+      ${isAd ? `<button class="btn sm ${memberOpen?'green':'red'}" data-act="toggle-forum" data-board="member">${memberOpen?'⏸ 关闭社团论坛':'▶ 开启社团论坛'}</button>` : ''}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3>▸ 发布新帖</h3>
+      <div class="field">
+        <textarea id="postContent" placeholder="分享你的想法…" style="min-height:90px"></textarea>
+      </div>
+      <div class="field">
+        <label>配图（可选，最多 4 张）</label>
+        <input type="file" id="postImgs" accept="image/*" multiple>
+        <div id="postImgPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+      </div>
+      <button class="btn" data-act="publish-post">发布</button>
+    </div>
+    ${list}`;
+}
+
+/* ================= 游客论坛（独立页面） ================= */
+function viewGuestForum(u){
+  const isAd = u && u.role === 'admin';
+  const guestOpen = cache.settings.forum_guest_open !== 'false';
+
+  if(!guestOpen && !isAd){
+    return `
+      ${guestMode ? guestBanner() : ''}
+      <div class="page-head"><h2>游客论坛</h2></div>
+      <div class="forum-locked">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">游客论坛已关闭</div>
+        <div class="lock-desc">管理员暂时关闭了游客论坛，请稍后再来看看。</div>
+      </div>`;
+  }
+
+  const posts = cache.postsGuest.slice().sort((a,b) => {
+    if(a.pinned && !b.pinned) return -1;
+    if(!a.pinned && b.pinned) return 1;
+    if(a.pinned && b.pinned) return new Date(b.pinned_at||0) - new Date(a.pinned_at||0);
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+
+  const list = posts.map(p => {
+    const isOwn = u && p.author === u.id;
+    const canDel = isOwn || isAd;
+    const imgs = (p.images && p.images.length) ? `<div class="post-imgs">${p.images.map(src=>`<img src="${src}" data-act="view-img" data-src="${src}" loading="lazy">`).join('')}</div>` : '';
+    return `
+      <div class="post" style="${p.pinned?'border-color:var(--yellow);box-shadow:0 0 0 1px rgba(255,224,102,.3)':''}">
+        ${p.pinned ? '<div style="display:inline-block;background:var(--yellow);color:#080b14;font-size:11px;font-weight:700;padding:2px 8px;letter-spacing:2px;margin-bottom:8px">📌 置顶</div>' : ''}
+        <div class="post-head">
+          <div class="avatar">${esc((userName(p.author)||'?').slice(0,1))}</div>
+          <div class="who">
+            <div class="nm">${esc(userName(p.author))} <span class="dim" style="font-size:11px">· ${esc(userDept(p.author))}</span></div>
+            <div class="mt">${relTime(p.created_at)} · ${fmtTime(p.created_at)}</div>
+          </div>
+          ${isAd ? `<button class="btn sm ${p.pinned?'yellow':'ghost'}" data-act="pin-post-guest" data-id="${p.id}">${p.pinned?'📌 已置顶':'📌 置顶'}</button>` : ''}
+          ${canDel ? `<button class="btn sm red del" data-act="del-post-guest" data-id="${p.id}">删除</button>` : ''}
+        </div>
+        <div class="post-body">${esc(p.content)}</div>
+        ${imgs}
+      </div>`;
+  }).join('') || '<div class="empty"><span class="big">🌐</span>游客论坛暂无文章</div>';
+
+  const editor = isAd ? `
+    <div class="card" style="margin-bottom:16px">
+      <h3>▸ 发布游客论坛文章（仅管理员）</h3>
+      <div class="field">
+        <textarea id="guestPostContent" placeholder="写点什么给游客看…" style="min-height:90px"></textarea>
+      </div>
+      <div class="field">
+        <label>配图（可选，最多 4 张）</label>
+        <input type="file" id="guestPostImgs" accept="image/*" multiple>
+        <div id="guestPostImgPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+      </div>
+      <button class="btn pink" data-act="publish-guest-post">发布到游客论坛</button>
+      <button class="btn red sm" data-act="clear-guest-board" style="margin-left:10px">清空全部</button>
+    </div>` : `
+    <div class="card" style="margin-bottom:16px;border-color:var(--yellow)">
+      <div style="font-size:12.5px;color:var(--yellow);line-height:1.9">
+        ⚠ 游客论坛只有管理员能发布文章，游客和社员只能浏览。
+      </div>
+    </div>`;
+
+  return `
+    ${guestMode ? guestBanner() : ''}
+    <div class="page-head"><h2>游客论坛</h2><div class="spacer"></div>
+      ${isAd ? `<button class="btn sm ${guestOpen?'green':'red'}" data-act="toggle-forum" data-board="guest">${guestOpen?'⏸ 关闭游客论坛':'▶ 开启游客论坛'}</button>` : ''}
+    </div>
+    ${editor}
+    ${list}`;
+}
+
+/* ================= 社团风采 ================= */
+function viewGallery(u){
+  const isAd = u && u.role === 'admin';
+  const items = cache.gallery.map(g => `
+    <div class="g-item">
+      <img src="${g.src}" data-act="view-img" data-src="${g.src}" loading="lazy">
+      ${isAd ? `<button class="btn sm red del" data-act="del-gallery" data-id="${g.id}">×</button>` : ''}
+      <div class="cap">${esc(g.caption||'（无说明）')}<div class="tm">${esc(userName(g.uploader))} · ${fmtTime(g.created_at)}</div></div>
+    </div>`).join('');
+  return `
+    ${guestMode ? guestBanner() : ''}
+    <div class="page-head"><h2>社团风采</h2><div class="spacer"></div>
+      ${isAd ? '<button class="btn" data-act="upload-gallery">+ 上传图片</button>' : ''}</div>
+    <div class="gallery">${items || '<div class="empty" style="grid-column:1/-1"><span class="big">❖</span>暂无风采图片' + (isAd ? '，点击右上角上传' : '') + '</div>'}</div>`;
+}
+
+/* ================= 社团活动 ================= */
+function viewActivity(u){
+  const isAd = u && u.role === 'admin';
+  const list = cache.activities.map(a => `
+    <div class="activity">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <h4 style="margin:0">◎ ${esc(a.title||'未命名活动')}</h4>
+        <div style="flex:1"></div>
+        ${isAd ? `<button class="btn sm red" data-act="del-activity" data-id="${a.id}">删除</button>` : ''}
+      </div>
+      <div class="a-body">${esc(a.content||'')}</div>
+      ${(a.images && a.images.length) ? `<div class="a-imgs">${a.images.map(src=>`<img src="${src}" data-act="view-img" data-src="${src}" loading="lazy">`).join('')}</div>` : ''}
+      <div class="a-meta">发布：${esc(a.author||'管理员')} · ${fmtTime(a.created_at)}</div>
+    </div>`).join('') || '<div class="empty"><span class="big">◎</span>暂无进行中的活动' + (isAd ? '，点击右上角添加' : '') + '</div>';
+
+  return `
+    ${guestMode ? guestBanner() : ''}
+    <div class="page-head"><h2>社团活动</h2><div class="spacer"></div>
+      ${isAd ? '<button class="btn green" data-act="new-activity">+ 发布活动</button>' : ''}</div>
+    ${list}`;
+}
+
+/* ================= 社团合作 ================= */
+function viewCoop(u){
+  const isAd = u && u.role === 'admin';
+
+  if(isAd){
+    const list = cache.cooperations.map(c => `
+      <div class="coop">
+        <div class="c-head">
+          <span class="tag ${c.status==='pending'?'yellow':c.status==='accepted'?'green':'dim'}">
+            ${c.status==='pending'?'待处理':c.status==='accepted'?'已接受':c.status==='rejected'?'已拒绝':'已处理'}
+          </span>
+          <span class="tag cyan">${esc(c.type||'其他')}</span>
+          <h4>${esc(c.name||'匿名')}</h4>
+          <div style="flex:1"></div>
+          ${c.status==='pending' ? `
+            <button class="btn sm green" data-act="coop-accept" data-id="${c.id}">接受</button>
+            <button class="btn sm yellow" data-act="coop-reject" data-id="${c.id}">拒绝</button>
+          ` : ''}
+          <button class="btn sm red" data-act="coop-del" data-id="${c.id}">删除</button>
+        </div>
+        <div class="c-meta">
+          <span>联系方式：<b>${esc(c.contact||'—')}</b></span>
+          <span>提交时间：<b>${fmtTime(c.created_at)}</b></span>
+        </div>
+        <div class="c-desc">${esc(c.detail||'')}</div>
+      </div>`).join('') || '<div class="empty"><span class="big">⇄</span>暂无合作申请</div>';
+
+    return `
+      <div class="page-head"><h2>社团合作 · 申请管理</h2></div>
+      ${list}`;
+  }
+
+  return `
+    ${guestMode ? guestBanner() : ''}
+    <div class="page-head"><h2>社团合作</h2></div>
+    <div class="card" style="margin-bottom:16px">
+      <h3>▸ 合作意向提交</h3>
+      <div class="field">
+        <label>合作类型</label>
+        <select id="coopType">
+          ${COOP_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="row">
+        <div class="field"><label>您的姓名 / 团队名</label><input id="coopName" placeholder="怎么称呼您" autocomplete="off"></div>
+        <div class="field"><label>联系方式</label><input id="coopContact" placeholder="QQ / 微信 / 邮箱" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label>详情说明</label>
+        <textarea id="coopDetail" placeholder="请描述您的需求、预期、时间安排等…" style="min-height:120px"></textarea>
+      </div>
+      <button class="btn" data-act="submit-coop">提交合作申请</button>
+      <div style="font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:10px">
+        ▸ 提交后管理员会尽快查看并联系您，请确保联系方式准确。
+      </div>
+    </div>`;
+}
+
+/* ================= 我要入社 ================= */
+function viewJoin(u){
+  const isAd = u && u.role === 'admin';
+
+  if(isAd){
+    const list = cache.applications.map(a => `
+      <div class="apply">
+        <div class="a-head">
+          <span class="tag ${a.status==='pending'?'yellow':a.status==='accepted'?'green':'dim'}">
+            ${a.status==='pending'?'待处理':a.status==='accepted'?'已通过':a.status==='rejected'?'已拒绝':'已处理'}
+          </span>
+          <h4>${esc(a.name||'匿名')}</h4>
+          <span class="tag purple">班级 ${esc(a.class||'—')}</span>
+          <div style="flex:1"></div>
+          ${a.status==='pending' ? `
+            <button class="btn sm green" data-act="apply-accept" data-id="${a.id}">通过</button>
+            <button class="btn sm yellow" data-act="apply-reject" data-id="${a.id}">拒绝</button>
+          ` : ''}
+          <button class="btn sm red" data-act="apply-del" data-id="${a.id}">删除</button>
+        </div>
+        <div class="a-meta">
+          <span>提交时间：<b>${fmtTime(a.created_at)}</b></span>
+        </div>
+        <div class="a-desc">${esc(a.intro||'')}</div>
+      </div>`).join('') || '<div class="empty"><span class="big">⊕</span>暂无入社申请</div>';
+
+    return `
+      <div class="page-head"><h2>我要入社 · 申请管理</h2></div>
+      ${list}`;
+  }
+
+  return `
+    ${guestMode ? guestBanner() : ''}
+    <div class="page-head"><h2>我要入社</h2></div>
+    <div class="card" style="margin-bottom:16px">
+      <h3>▸ 入社申请</h3>
+      <div class="row">
+        <div class="field"><label>姓名</label><input id="joinName" placeholder="您的姓名" autocomplete="off"></div>
+        <div class="field"><label>班级</label><input id="joinClass" placeholder="如：264" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label>个人优势介绍</label>
+        <textarea id="joinIntro" placeholder="介绍一下你自己：擅长什么、想在社团做什么、有什么作品或经历…" style="min-height:140px"></textarea>
+      </div>
+      <button class="btn pink" data-act="submit-apply">提交入社申请</button>
+      <div style="font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:10px">
+        ▸ 提交后管理员会尽快查看，通过后会为你创建社团账号。
+      </div>
+    </div>`;
+}
+
+/* ================= 人员管理 ================= */
+function viewMembers(u){
+  if(!u || u.role !== 'admin') return '<div class="empty">无权限</div>';
+  const deptTags = {
+    '技术部':'cyan','数据部':'purple','宣传部':'pink','核心管理':'yellow','未分组':'dim',
+    '社长':'yellow','技术副社':'cyan','宣传副社':'pink','技术部长':'cyan','数据部长':'purple','宣传部长':'pink'
+  };
+
+  const allDepts = ['技术部','数据部','宣传部','核心管理','未分组'];
+  cache.users.forEach(m => {
+    if(m.dept && !allDepts.includes(m.dept)) allDepts.push(m.dept);
+  });
+
+  const filtered = memberDeptFilter === 'all'
+    ? cache.users
+    : cache.users.filter(m => (m.dept||'未分组') === memberDeptFilter);
+
+  const rows = filtered.map(m=>`
+    <tr>
+      <td class="mono">${esc(m.username)}</td>
+      <td>${esc(m.name)}</td>
+      <td>
+        <select data-act="change-dept" data-id="${m.id}"
+          style="padding:3px 6px;font-size:12px;width:auto;min-width:130px">
+          ${DEPTS.map(d=>`<option value="${d}" ${m.dept===d?'selected':''}>${d}</option>`).join('')}
+          ${!DEPTS.includes(m.dept||'未分组') ? `<option value="${esc(m.dept)}" selected>${esc(m.dept)}</option>` : ''}
+        </select>
+      </td>
+      <td>${m.role==='admin'?'<span class="tag pink">管理员</span>':'<span class="tag cyan">社员</span>'}</td>
+      <td>${m.active?'<span class="tag green">正常</span>':'<span class="tag red">已禁用</span>'}</td>
+      <td class="mono pwd-new">${esc(m.password)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn sm" data-act="reset-pwd" data-id="${m.id}">改密</button>
+        <button class="btn sm ${m.active?'ghost':'green'}" data-act="toggle-active" data-id="${m.id}">${m.active?'禁用':'启用'}</button>
+        ${m.id===u.id?'':`<button class="btn sm red" data-act="del-member" data-id="${m.id}">删除</button>`}
+      </td>
+    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--dim)">该部门暂无成员</td></tr>`;
+
+  const deptBtns = allDepts.map(d => {
+    const n = cache.users.filter(x => (x.dept||'未分组') === d).length;
+    if(n === 0 && d !== '未分组') return '';
+    const cls = deptTags[d] || 'dim';
+    const active = memberDeptFilter === d;
+    return `<button class="btn sm ${active?'':'ghost'}" data-act="filter-dept" data-dept="${esc(d)}" style="border-color:currentColor">
+      <span class="tag ${cls}" style="border:none;padding:0">${esc(d)}</span>
+      <span class="dim" style="margin-left:4px">${n}</span>
+    </button>`;
+  }).join(' ');
+
+  const total = cache.users.length;
+  const cur = memberDeptFilter === 'all' ? total : filtered.length;
+
+  return `
+    <div class="page-head"><h2>人员管理</h2><div class="spacer"></div>
+      <button class="btn" data-act="add-member">+ 新增社员</button>
+      <button class="btn yellow" data-act="batch-add">⇈ 批量添加</button></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:12px;color:var(--dim);line-height:2;margin-bottom:10px">
+        ▸ 共 <b style="color:var(--cyan)">${total}</b> 个账号，当前显示 <b style="color:var(--yellow)">${cur}</b> 人
+        ${memberDeptFilter !== 'all' ? `｜筛选：<b style="color:var(--cyan)">${esc(memberDeptFilter)}</b>` : ''}<br>
+        ▸ <span style="color:var(--yellow)">点下方按钮一键筛选部门；下拉可修改部门，改完自动保存。</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn sm ${memberDeptFilter==='all'?'':'ghost'}" data-act="filter-dept" data-dept="all">
+          全部 <span class="dim">${total}</span>
+        </button>
+        ${deptBtns}
+      </div>
+    </div>
+
+    <div class="card table-wrap"><table>
+      <thead><tr><th>账号</th><th>姓名</th><th>部门（可改）</th><th>角色</th><th>状态</th><th>当前密码</th><th>操作</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+/* ================= 公告 / 日志 / 数据 ================= */
+function viewAnnounce(u){
+  if(!u || u.role !== 'admin') return '<div class="empty">无权限</div>';
+  const list = cache.announcements.map(a=>`
+    <div class="announce"><div style="display:flex;align-items:center;gap:10px"><h4 style="margin:0">◈ ${esc(a.title)}</h4><div style="flex:1"></div><button class="btn sm red" data-act="del-announce" data-id="${a.id}">删除</button></div>
+    <p style="margin-top:8px">${esc(a.content)}</p><div class="time">${fmtTime(a.created_at)} · ${esc(a.author)}</div></div>`).join('') || '<div class="empty"><span class="big">◈</span>暂无公告</div>';
+  return `<div class="page-head"><h2>公告管理</h2><div class="spacer"></div><button class="btn" data-act="new-announce">+ 发布公告</button></div>${list}`;
+}
+function viewLogs(u){
+  if(!u || u.role !== 'admin') return '<div class="empty">无权限</div>';
+  const items = cache.logs.slice(0,200).map(l=>`
+    <div class="log-item"><span class="t">${fmtTime(l.created_at)}</span>
+    <span class="tag ${l.type==='安全'?'red':l.type==='登录'?'cyan':l.type==='密码'?'yellow':l.type==='论坛'?'purple':l.type==='合作'?'orange':l.type==='入社'?'pink':l.type==='活动'?'green':'purple'}" style="flex:none;height:20px;line-height:16px">${esc(l.type||'')}</span>
+    <span class="m">${esc(l.text||'')}</span></div>`).join('') || '<div class="empty"><span class="big">≡</span>暂无日志</div>';
+  return `<div class="page-head"><h2>操作日志</h2><div class="spacer"></div><button class="btn sm ghost" data-act="clear-logs">清空日志</button></div>
+    <div class="card" style="max-height:70vh;overflow-y:auto">${items}</div>`;
+}
+function viewData(u){
+  if(!u || u.role !== 'admin') return '<div class="empty">无权限</div>';
+  return `
+    <div class="page-head"><h2>数据管理</h2></div>
+    <div class="card" style="margin-bottom:14px"><h3>▸ 云端数据概览</h3>
+      <table><tbody>
+        <tr><td class="dim">账号总数</td><td>${cache.users.length}</td></tr>
+        <tr><td class="dim">任务总数</td><td>${cache.tasks.length}</td></tr>
+        <tr><td class="dim">公告总数</td><td>${cache.announcements.length}</td></tr>
+        <tr><td class="dim">风采图片</td><td>${cache.gallery.length}</td></tr>
+        <tr><td class="dim">社团活动</td><td>${cache.activities.length}</td></tr>
+        <tr><td class="dim">社团论坛帖子</td><td>${cache.posts.length}</td></tr>
+        <tr><td class="dim">游客论坛帖子</td><td>${cache.postsGuest.length}</td></tr>
+        <tr><td class="dim">合作申请</td><td>${cache.cooperations.length}</td></tr>
+        <tr><td class="dim">入社申请</td><td>${cache.applications.length}</td></tr>
+        <tr><td class="dim">日志条数</td><td>${cache.logs.length}</td></tr>
+      </tbody></table>
+    </div>
+    <div class="row">
+      <div class="card"><h3>▸ 从云端刷新</h3><p style="font-size:12.5px;color:var(--dim);line-height:1.9;margin-bottom:12px">重新拉取最新数据。</p><button class="btn" data-act="cloud-refresh">立即刷新</button></div>
+      <div class="card"><h3>▸ 导出备份</h3><p style="font-size:12.5px;color:var(--dim);line-height:1.9;margin-bottom:12px">导出完整 JSON 备份。</p><button class="btn yellow" data-act="export-data">导出 JSON</button></div>
+    </div>`;
+}
+function viewPassword(u){
+  if(!u) return '<div class="empty">请先登录</div>';
+  const hist = cache.logs.filter(l => l.actor === u.name && l.type === '密码').slice(0,30).map(h=>`
+    <tr><td class="dim">${fmtTime(h.created_at)}</td><td colspan="3">${esc(h.text)}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="dim" style="text-align:center;padding:20px">暂无密码变更记录</td></tr>';
+  return `
+    <div class="page-head"><h2>修改密码</h2></div>
+    <div class="row" style="align-items:flex-start">
+      <div class="card" style="flex:0 0 380px;max-width:100%"><h3>▸ 更新登录密码</h3>
+        <div class="field"><label>当前密码</label><input type="password" id="oldPwd" autocomplete="off"></div>
+        <div class="field"><label>新密码</label><input type="password" id="newPwd" placeholder="至少 6 位" autocomplete="off"></div>
+        <div class="field"><label>确认新密码</label><input type="password" id="newPwd2" autocomplete="off"></div>
+        <button class="btn" data-act="do-change-pwd" style="width:100%">确认修改</button>
+        <div style="font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:12px">⚠ 修改后立即同步云端，管理员在「人员管理」可见。</div>
+      </div>
+      <div class="card" style="flex:1;min-width:280px"><h3>▸ 我的密码变更记录</h3>
+        <div class="table-wrap"><table><thead><tr><th>时间</th><th colspan="3">内容</th></tr></thead><tbody>${hist}</tbody></table></div>
+      </div>
+    </div>`;
+}
+function viewProfile(u){
+  if(!u) return '<div class="empty">请先登录</div>';
+  const myTasks = cache.tasks.filter(t => taskVisible(u, t));
+  const done = myTasks.filter(t=>(getMySub(t.id,u.id)||{}).status==='done').length;
+  const rate = myTasks.length ? Math.round(done/myTasks.length*100) : 0;
+  const myPosts = cache.posts.filter(p=>p.author===u.id).length;
+  return `
+    <div class="page-head"><h2>个人中心</h2></div>
+    <div class="row" style="align-items:flex-start">
+      <div class="card" style="flex:0 0 340px;max-width:100%"><h3>▸ 基本资料</h3>
+        <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px">
+          <div class="avatar" style="width:52px;height:52px;font-size:22px">${esc((u.name||u.username).slice(0,1))}</div>
+          <div><div style="font-size:16px;color:var(--cyan)">${esc(u.name)}</div><div style="font-size:12px;color:var(--dim);margin-top:4px">@${esc(u.username)}</div></div>
+        </div>
+        <table><tbody>
+          <tr><td class="dim">角色</td><td>${u.role==='admin'?'管理员':'社员'}</td></tr>
+          <tr><td class="dim">部门</td><td>${esc(u.dept||'未分组')}</td></tr>
+          <tr><td class="dim">状态</td><td>${u.active?'<span class="tag green">正常</span>':'<span class="tag red">已禁用</span>'}</td></tr>
+          <tr><td class="dim">加入时间</td><td>${fmtTime(u.created_at)}</td></tr>
+          <tr><td class="dim">论坛发帖</td><td>${myPosts} 条</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card" style="flex:1;min-width:280px"><h3>▸ 任务统计</h3>
+        <div class="stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:18px">
+          <div class="stat"><div class="num" style="color:var(--cyan)">${myTasks.length}</div><div class="lbl">接收任务</div></div>
+          <div class="stat"><div class="num" style="color:var(--green)">${done}</div><div class="lbl">已完成</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:8px">完成率 ${rate}%</div>
+        <div style="height:14px;border:2px solid var(--line);background:#0a0f1c;position:relative">
+          <div style="height:100%;width:${rate}%;background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,var(--purple) 6px 12px)"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ================= 模态框 ================= */
+function openModal({ title, html, okText='确定', cancelText='取消', wide=false, onOk, onMount }){
+  const root = $('#modalRoot');
+  root.style.display = 'block';
+  root.innerHTML = `
+    <div class="mask"><div class="modal ${wide?'wide':''}">
+      <div class="modal-head">${esc(title)}<button class="x" data-close>×</button></div>
+      <div class="modal-body">${html}</div>
+      <div class="modal-foot">${cancelText!==''?`<button class="btn ghost" data-close>${esc(cancelText)}</button>`:''}<button class="btn" id="modalOkBtn">${esc(okText)}</button></div>
+    </div></div>`;
+  const close = ()=>{ root.style.display='none'; root.innerHTML=''; };
+  root.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
+  root.querySelector('.mask').addEventListener('mousedown', e=>{ if(e.target.classList.contains('mask')) close(); });
+  root.querySelector('#modalOkBtn').onclick = ()=>{ if(onOk && onOk(root, close)===false) return; close(); };
+  if(onMount) onMount(root, close);
+  return { root, close };
+}
+function closeModal(){ $('#modalRoot').style.display='none'; $('#modalRoot').innerHTML=''; }
+
+function compressImage(file, maxW = 1000, quality = 0.75){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadDataUrl(dataUrl, prefix){
+  const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+  const blob = await (await fetch(dataUrl)).blob();
+  const { error } = await sb.storage.from('gallery').upload(fileName, blob, { contentType:'image/jpeg' });
+  if(error) throw error;
+  const { data: pub } = sb.storage.from('gallery').getPublicUrl(fileName);
+  return pub.publicUrl;
+}
+
+/* ================= 业务操作 ================= */
+const actions = {
+  'enter-guest'(){ enterGuest(); },
+  'logout'(){ openModal({ title:'退出登录', html:'<div style="font-size:13px;line-height:2">确定退出？</div>', okText:'退出', onOk(){ logout(); } }); },
+  'task-filter'(k){ taskFilter = k; renderView(); },
+  'filter-dept'(dept){ memberDeptFilter = dept || 'all'; renderView(); },
+
+  'toggle-forum'(board){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可操作','err'); return; }
+    const key = board === 'guest' ? 'forum_guest_open' : 'forum_member_open';
+    const cur = cache.settings[key] !== 'false';
+    const next = cur ? 'false' : 'true';
+    const label = board === 'guest' ? '游客论坛' : '社团论坛';
+    openModal({
+      title: cur ? `关闭${label}` : `开启${label}`,
+      okText: cur ? '确认关闭' : '确认开启',
+      html: cur
+        ? `<div style="font-size:13px;line-height:2">确定<b style="color:var(--red)">关闭${label}</b>吗？<br><span class="dim">关闭后社员将无法发帖、评论、点赞，管理员仍可操作。</span></div>`
+        : `<div style="font-size:13px;line-height:2">确定<b style="color:var(--green)">开启${label}</b>吗？</div>`,
+      async onOk(){
+        const { error } = await sb.from('settings').upsert({ key, value: next, updated_at: new Date().toISOString() });
+        if(error){ toast('操作失败：'+error.message, 'err'); return; }
+        await log('论坛', `管理员 ${u.name} ${cur?'关闭':'开启'}了${label}`, u.name);
+        await loadAll();
+        renderView();
+        toast(cur ? `${label}已关闭` : `${label}已开启`, 'info');
+      }
+    });
+  },
+
+  'pin-post'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可置顶','err'); return; }
+    const p = cache.posts.find(x=>x.id===id); if(!p) return;
+    const next = !p.pinned;
+    (async () => {
+      const { error } = await sb.from('posts').update({
+        pinned: next,
+        pinned_at: next ? new Date().toISOString() : null
+      }).eq('id', id);
+      if(error){ toast('操作失败：'+error.message,'err'); return; }
+      await log('论坛', `管理员 ${u.name} ${next?'置顶':'取消置顶'}了帖子`, u.name);
+      await loadAll(); renderView();
+      toast(next ? '已置顶' : '已取消置顶', 'info');
+    })();
+  },
+
+  'pin-post-guest'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可置顶','err'); return; }
+    const p = cache.postsGuest.find(x=>x.id===id); if(!p) return;
+    const next = !p.pinned;
+    (async () => {
+      const { error } = await sb.from('posts_guest').update({
+        pinned: next,
+        pinned_at: next ? new Date().toISOString() : null
+      }).eq('id', id);
+      if(error){ toast('操作失败：'+error.message,'err'); return; }
+      await log('论坛', `管理员 ${u.name} ${next?'置顶':'取消置顶'}了游客论坛文章`, u.name);
+      await loadAll(); renderView();
+      toast(next ? '已置顶' : '已取消置顶', 'info');
+    })();
+  },
+
+  'change-dept'(id, el){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可修改部门','err'); renderView(); return; }
+    const m = cache.users.find(x=>x.id===id); if(!m) return;
+    const newDept = el.value;
+    if(newDept === m.dept) return;
+    const oldDept = m.dept;
+    (async () => {
+      el.disabled = true;
+      const { error } = await sb.from('users').update({ dept: newDept }).eq('id', id);
+      el.disabled = false;
+      if(error){ toast('修改失败：'+error.message,'err'); renderView(); return; }
+      await log('人员', `管理员 ${u.name} 将 ${m.name} 的部门从「${oldDept}」改为「${newDept}」`, u.name);
+      await loadAll();
+      if(memberDeptFilter !== 'all' &&
+         !cache.users.some(x => (x.dept||'未分组') === memberDeptFilter)){
+        memberDeptFilter = 'all';
+      }
+      renderView();
+      toast(`${m.name} → ${newDept}`,'ok');
+    })();
+  },
+
+  'submit-coop'(){
+    const type = $('#coopType').value;
+    const name = $('#coopName').value.trim();
+    const contact = $('#coopContact').value.trim();
+    const detail = $('#coopDetail').value.trim();
+    if(!name){ toast('请填写您的姓名/团队名','err'); return; }
+    if(!contact){ toast('请填写联系方式','err'); return; }
+    if(!detail){ toast('请填写详情说明','err'); return; }
+    (async () => {
+      const { error } = await sb.from('cooperations').insert({
+        type, name, contact, detail, status:'pending'
+      });
+      if(error){ toast('提交失败：'+error.message,'err'); return; }
+      await log('合作', `收到合作申请：${name}（${type}）`, name);
+      toast('合作申请已提交，管理员会尽快查看','ok');
+      $('#coopName').value = '';
+      $('#coopContact').value = '';
+      $('#coopDetail').value = '';
+      await loadAll(); renderView();
+    })();
+  },
+  'coop-accept'(id){
+    const u = currentUser();
+    (async () => {
+      const { error } = await sb.from('cooperations').update({ status:'accepted' }).eq('id', id);
+      if(error){ toast('操作失败','err'); return; }
+      await log('合作', `管理员 ${u.name} 接受了合作申请`, u.name);
+      await loadAll(); renderView(); toast('已接受','ok');
+    })();
+  },
+  'coop-reject'(id){
+    const u = currentUser();
+    (async () => {
+      const { error } = await sb.from('cooperations').update({ status:'rejected' }).eq('id', id);
+      if(error){ toast('操作失败','err'); return; }
+      await log('合作', `管理员 ${u.name} 拒绝了合作申请`, u.name);
+      await loadAll(); renderView(); toast('已拒绝','info');
+    })();
+  },
+  'coop-del'(id){
+    openModal({ title:'删除合作申请', okText:'删除', html:'<div style="font-size:13px;line-height:2">确定删除这条合作申请？</div>',
+      async onOk(){
+        const { error } = await sb.from('cooperations').delete().eq('id', id);
+        if(error){ toast('失败','err'); return; }
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'submit-apply'(){
+    const name = $('#joinName').value.trim();
+    const cls = $('#joinClass').value.trim();
+    const intro = $('#joinIntro').value.trim();
+    if(!name){ toast('请填写姓名','err'); return; }
+    if(!cls){ toast('请填写班级','err'); return; }
+    if(!intro){ toast('请填写个人优势介绍','err'); return; }
+    (async () => {
+      const { error } = await sb.from('applications').insert({
+        name, class: cls, intro, status:'pending'
+      });
+      if(error){ toast('提交失败：'+error.message,'err'); return; }
+      await log('入社', `收到入社申请：${name}（${cls}班）`, name);
+      toast('入社申请已提交，管理员会尽快查看','ok');
+      $('#joinName').value = '';
+      $('#joinClass').value = '';
+      $('#joinIntro').value = '';
+      await loadAll(); renderView();
+    })();
+  },
+  'apply-accept'(id){
+    const u = currentUser();
+    (async () => {
+      const { error } = await sb.from('applications').update({ status:'accepted' }).eq('id', id);
+      if(error){ toast('操作失败','err'); return; }
+      await log('入社', `管理员 ${u.name} 通过了入社申请`, u.name);
+      await loadAll(); renderView(); toast('已通过','ok');
+    })();
+  },
+  'apply-reject'(id){
+    const u = currentUser();
+    (async () => {
+      const { error } = await sb.from('applications').update({ status:'rejected' }).eq('id', id);
+      if(error){ toast('操作失败','err'); return; }
+      await log('入社', `管理员 ${u.name} 拒绝了入社申请`, u.name);
+      await loadAll(); renderView(); toast('已拒绝','info');
+    })();
+  },
+  'apply-del'(id){
+    openModal({ title:'删除入社申请', okText:'删除', html:'<div style="font-size:13px;line-height:2">确定删除这条入社申请？</div>',
+      async onOk(){
+        const { error } = await sb.from('applications').delete().eq('id', id);
+        if(error){ toast('失败','err'); return; }
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'new-activity'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可发布','err'); return; }
+    openModal({ title:'发布社团活动', okText:'发布', wide:true, html:`
+      <div class="field"><label>活动标题</label><input id="actTitle" placeholder="如：2024 秋季招新"></div>
+      <div class="field"><label>活动内容</label><textarea id="actContent" style="min-height:140px" placeholder="活动的介绍、时间、地点、参与方式等…"></textarea></div>
+      <div class="field">
+        <label>活动图片（可多选，最多 6 张）</label>
+        <input type="file" id="actImgs" accept="image/*" multiple>
+        <div id="actImgPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+      </div>`,
+      onMount(root){
+        let imgs = [];
+        root.querySelector('#actImgs').addEventListener('change', async e => {
+          const files = [...(e.target.files||[])].slice(0,6);
+          const prev = root.querySelector('#actImgPreview');
+          prev.innerHTML = '';
+          imgs = [];
+          for(const f of files){
+            if(!f.type.startsWith('image/')) continue;
+            const src = await compressImage(f, 1000, 0.75);
+            imgs.push(src);
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = 'width:80px;height:80px;object-fit:cover;border:2px solid var(--line)';
+            prev.appendChild(img);
+          }
+          root._actImgs = imgs;
+        });
+      },
+      async onOk(root, close){
+        const title = root.querySelector('#actTitle').value.trim();
+        const content = root.querySelector('#actContent').value.trim();
+        if(!title){ toast('请填写活动标题','err'); return false; }
+        if(!content){ toast('请填写活动内容','err'); return false; }
+        const imgs = root._actImgs || [];
+        try{
+          const urls = [];
+          for(const d of imgs) urls.push(await uploadDataUrl(d, 'activity'));
+          const { error } = await sb.from('activities').insert({
+            title, content, images: urls, author: u.name
+          });
+          if(error) throw error;
+          await log('活动', `管理员 ${u.name} 发布了活动「${title}」`, u.name);
+          await loadAll(); close(); renderView(); toast('活动已发布','ok');
+        }catch(e){ toast('发布失败：'+e.message,'err'); return false; }
+      }});
+  },
+  'del-activity'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可删除','err'); return; }
+    openModal({ title:'删除活动', okText:'删除', html:'<div style="font-size:13px;line-height:2">确定删除这个活动？</div>',
+      async onOk(){
+        const { error } = await sb.from('activities').delete().eq('id', id);
+        if(error){ toast('失败','err'); return; }
+        await log('活动', `管理员 ${u.name} 删除了活动`, u.name);
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'publish-guest-post'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可发布到游客论坛','err'); return; }
+    const content = ($('#guestPostContent')?.value || '').trim();
+    if(!content){ toast('请输入内容','err'); return; }
+    const imgs = guestDraftImgs.slice(0, 4);
+    (async () => {
+      const { error } = await sb.from('posts_guest').insert({ author: u.id, content, images: imgs });
+      if(error){ toast('发布失败：'+error.message,'err'); return; }
+      guestDraftImgs = [];
+      await log('论坛', `${u.name} 发布了一条游客论坛文章`, u.name);
+      await loadAll(); renderView(); toast('已发布到游客论坛','ok');
+    })();
+  },
+  'del-post-guest'(id){
+    const u = currentUser();
+    if(!u) return;
+    openModal({ title:'删除文章', okText:'删除', html:'<div style="font-size:13px;line-height:2">确定删除这篇游客论坛文章？</div>',
+      async onOk(){
+        const { error } = await sb.from('posts_guest').delete().eq('id', id);
+        if(error){ toast('失败','err'); return; }
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+  'clear-guest-board'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可清空','err'); return; }
+    openModal({ title:'清空游客论坛', okText:'清空', html:'<div style="font-size:13px;line-height:2;color:var(--red)">确定清空游客论坛的所有文章？该操作不可撤销。</div>',
+      async onOk(){
+        const { error } = await sb.from('posts_guest').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if(error){ toast('失败','err'); return; }
+        await log('论坛', `管理员 ${u.name} 清空了游客论坛`, u.name);
+        await loadAll(); renderView(); toast('已清空游客论坛','info');
+      }});
+  },
+
+  'publish-post'(){
+    const u = currentUser();
+    if(!u){ toast('请先登录','err'); return; }
+    if(cache.settings.forum_member_open === 'false' && u.role !== 'admin'){
+      toast('社团论坛已关闭','err'); return;
+    }
+    const content = ($('#postContent')?.value || '').trim();
+    if(!content){ toast('请输入内容','err'); return; }
+    const imgs = forumDraftImgs.slice(0, 4);
+    (async () => {
+      const { error } = await sb.from('posts').insert({ author: u.id, content, images: imgs });
+      if(error){ toast('发布失败：'+error.message,'err'); return; }
+      forumDraftImgs = [];
+      await log('论坛', `${u.name} 发布了新帖`, u.name);
+      await loadAll(); renderView(); toast('发布成功','ok');
+    })();
+  },
+  'like-post'(id){
+    const u = currentUser();
+    if(!u) return;
+    if(cache.settings.forum_member_open === 'false' && u.role !== 'admin'){
+      toast('社团论坛已关闭','err'); return;
+    }
+    const liked = cache.likes.some(x => x.post_id===id && x.user_id===u.id);
+    (async () => {
+      if(liked){
+        await sb.from('post_likes').delete().eq('post_id', id).eq('user_id', u.id);
+      }else{
+        await sb.from('post_likes').insert({ post_id: id, user_id: u.id });
+      }
+      await loadAll(); renderView();
+    })();
+  },
+  'focus-comment'(id){
+    const el = $('#cmt_' + id);
+    if(el){ el.focus(); el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  },
+  'add-comment'(id){
+    const u = currentUser();
+    if(!u) return;
+    if(cache.settings.forum_member_open === 'false' && u.role !== 'admin'){
+      toast('社团论坛已关闭','err'); return;
+    }
+    const inp = $('#cmt_' + id);
+    const text = (inp?.value || '').trim();
+    if(!text){ toast('请输入评论','err'); return; }
+    (async () => {
+      const { error } = await sb.from('comments').insert({ post_id: id, author: u.id, text });
+      if(error){ toast('评论失败','err'); return; }
+      await loadAll(); renderView(); toast('已评论','ok');
+    })();
+  },
+  'del-comment'(id){
+    const u = currentUser();
+    if(!u) return;
+    (async () => {
+      const { error } = await sb.from('comments').delete().eq('id', id);
+      if(error){ toast('删除失败','err'); return; }
+      await loadAll(); renderView();
+    })();
+  },
+  'del-post'(id){
+    const u = currentUser();
+    if(!u) return;
+    openModal({ title:'删除帖子', okText:'删除', html:`<div style="font-size:13px;line-height:2">确定删除这条帖子？</div>`,
+      async onOk(){
+        const { error } = await sb.from('posts').delete().eq('id', id);
+        if(error){ toast('删除失败','err'); return; }
+        await log('论坛', `${u.name} 删除了帖子`, u.name);
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'upload-gallery'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可上传','err'); return; }
+    openModal({ title:'上传风采图片', okText:'上传', html:`
+      <div class="field"><label>选择图片（可多选）</label><input type="file" id="gFiles" accept="image/*" multiple></div>
+      <div class="field"><label>说明（可选）</label><input id="gCap"></div>`,
+      async onOk(root, close){
+        const files = [...(root.querySelector('#gFiles').files || [])].slice(0, 6);
+        if(!files.length){ toast('请选择图片','err'); return false; }
+        const cap = root.querySelector('#gCap').value.trim();
+        try{
+          let ok = 0;
+          for(const f of files){
+            if(!f.type.startsWith('image/')) continue;
+            const dataUrl = await compressImage(f, 1000, 0.75);
+            const url = await uploadDataUrl(dataUrl, 'gallery');
+            await sb.from('gallery').insert({ src: url, caption: cap, uploader: u.id });
+            ok++;
+          }
+          await log('风采', `${u.name} 上传了 ${ok} 张图片`, u.name);
+          await loadAll();
+          close(); renderView(); toast(`已上传 ${ok} 张`,'ok');
+        }catch(e){ console.error(e); toast('上传失败：'+e.message,'err'); return false; }
+        return false;
+      }});
+  },
+  'del-gallery'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可删除','err'); return; }
+    openModal({ title:'删除图片', okText:'删除', html:`<div style="font-size:13px;line-height:2">确定删除？</div>`,
+      async onOk(){
+        const { error } = await sb.from('gallery').delete().eq('id', id);
+        if(error){ toast('删除失败','err'); return; }
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+  'view-img'(id, el){
+    const src = el.dataset.src;
+    if(!src) return;
+    const d = document.createElement('div');
+    d.className = 'img-view';
+    d.innerHTML = `<img src="${src}">`;
+    d.onclick = () => d.remove();
+    document.body.appendChild(d);
+  },
+
+  'new-task'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const members = cache.users.filter(x => x.active);
+    if(!members.length){ toast('暂无可用账号','err'); return; }
+    const taskDepts = ['技术部','数据部','宣传部','核心管理','未分组'];
+    const deptOptions = taskDepts.map(d => {
+      const n = members.filter(m => m.dept === d).length;
+      return `<label style="display:inline-flex;align-items:center;gap:6px;margin:0 12px 8px 0;cursor:pointer;font-size:13px;color:var(--text)">
+        <input type="checkbox" class="nt-dept" value="${d}" style="width:auto;margin:0" ${n?'':'disabled'}>
+        <span>${d} <span class="dim">(${n}人)</span></span></label>`;
+    }).join('');
+    const html = `
+      <div class="field"><label>任务标题</label><input id="ntTitle"></div>
+      <div class="field"><label>任务描述</label><textarea id="ntDesc"></textarea></div>
+      <div class="row">
+        <div class="field"><label>优先级</label><select id="ntPri"><option value="normal">普通</option><option value="low">低</option><option value="high">高</option><option value="urgent">紧急</option></select></div>
+        <div class="field"><label>截止日期</label><input type="date" id="ntDeadline"></div>
+      </div>
+      <div class="field"><label>按部门快速选择</label>
+        <div style="border:2px solid var(--line);padding:10px;background:#0a0f1c">${deptOptions}</div>
+      </div>
+      <div class="field"><label>指派社员（可多选）</label>
+        <div style="border:2px solid var(--line);padding:10px;max-height:180px;overflow-y:auto;background:#0a0f1c">
+          ${members.map(m=>`<label style="display:flex;align-items:center;gap:9px;margin:0 0 8px;color:var(--text);cursor:pointer;font-size:13px">
+            <input type="checkbox" class="nt-user" value="${m.id}" data-dept="${esc(m.dept||'')}" style="width:auto;margin:0">
+            <span>${esc(m.name)} <span class="dim">@${esc(m.username)} · ${esc(m.dept||'未分组')}</span></span></label>`).join('')}
+        </div>
+      </div>`;
+    openModal({ title:'发布新任务', html, okText:'发布', wide:true, onMount(root){
+      root.querySelectorAll('.nt-dept').forEach(cb => {
+        cb.addEventListener('change', () => {
+          root.querySelectorAll('.nt-user').forEach(uc => {
+            if(uc.dataset.dept === cb.value) uc.checked = cb.checked;
+          });
+        });
+      });
+    }, async onOk(root, close){
+      const title = root.querySelector('#ntTitle').value.trim();
+      const desc = root.querySelector('#ntDesc').value.trim();
+      const pri = root.querySelector('#ntPri').value;
+      const deadline = root.querySelector('#ntDeadline').value || null;
+      const assignees = [...root.querySelectorAll('.nt-user:checked')].map(c => c.value);
+      if(!title){ toast('请填写标题','err'); return false; }
+      if(!assignees.length){ toast('请至少指派一人','err'); return false; }
+      try{
+        const { data: taskRow, error: e1 } = await sb.from('tasks').insert({
+          title, description: desc, priority: pri, deadline, created_by: u.id
+        }).select().single();
+        if(e1) throw e1;
+        const ta = assignees.map(aid => ({ task_id: taskRow.id, user_id: aid, status:'pending' }));
+        const { error: e2 } = await sb.from('task_assignees').insert(ta);
+        if(e2) throw e2;
+        await sb.from('task_history').insert({ task_id: taskRow.id, text:'任务发布', by_name: u.name });
+        await log('任务', `发布任务「${title}」，指派 ${assignees.length} 人`, u.name);
+        await loadAll();
+        close(); renderView(); toast('任务发布成功','ok');
+      }catch(e){ console.error(e); toast('发布失败：'+e.message,'err'); return false; }
+    }});
+  },
+  'accept-task'(id){
+    const u = currentUser();
+    (async () => {
+      const { error } = await sb.from('task_assignees').update({ status:'doing' })
+        .eq('task_id', id).eq('user_id', u.id);
+      if(error){ toast('操作失败','err'); return; }
+      await sb.from('task_history').insert({ task_id: id, text:`${u.name} 接受任务`, by_name: u.name });
+      await log('任务', `${u.name} 接受了任务`, u.name);
+      await loadAll(); renderView(); toast('已接受任务','ok');
+    })();
+  },
+  'submit-task'(id){
+    const u = currentUser();
+    openModal({ title:'提交任务', okText:'提交', html:`
+      <div class="field"><label>完成情况说明</label><textarea id="subNote"></textarea></div>`,
+      async onOk(root, close){
+        const note = root.querySelector('#subNote').value.trim() || '（无说明）';
+        const { error } = await sb.from('task_assignees').update({
+          status:'review', submit_note: note, submitted_at: new Date().toISOString()
+        }).eq('task_id', id).eq('user_id', u.id);
+        if(error){ toast('提交失败','err'); return false; }
+        await sb.from('task_history').insert({ task_id: id, text:`${u.name} 提交完成`, by_name: u.name });
+        await log('任务', `${u.name} 提交了任务`, u.name);
+        await loadAll(); close(); renderView(); toast('已提交，等待审核','ok');
+      }});
+  },
+  'approve-one'(id, el){
+    const u = currentUser();
+    const aid = el.dataset.uid;
+    (async () => {
+      const { error } = await sb.from('task_assignees').update({ status:'done', review_note:'' })
+        .eq('task_id', id).eq('user_id', aid);
+      if(error){ toast('操作失败','err'); return; }
+      await sb.from('task_history').insert({ task_id: id, text:`${userName(aid)} 的任务被审核通过`, by_name: u.name });
+      await log('任务', `审核通过 ${userName(aid)} 的任务`, u.name);
+      await loadAll(); renderView(); toast(`${userName(aid)} 已通过`,'ok');
+    })();
+  },
+  'reject-one'(id, el){
+    const u = currentUser();
+    const aid = el.dataset.uid;
+    openModal({ title:'打回重做', okText:'确认打回', html:`
+      <div style="margin-bottom:14px">打回 <b style="color:var(--cyan)">${esc(userName(aid))}</b> 的提交</div>
+      <div class="field"><label>修改意见</label><textarea id="rjNote"></textarea></div>`,
+      async onOk(root, close){
+        const note = root.querySelector('#rjNote').value.trim() || '请完善后重新提交。';
+        const { error } = await sb.from('task_assignees').update({ status:'doing', review_note: note })
+          .eq('task_id', id).eq('user_id', aid);
+        if(error){ toast('操作失败','err'); return false; }
+        await sb.from('task_history').insert({ task_id: id, text:`${userName(aid)} 被打回`, by_name: u.name });
+        await log('任务', `打回 ${userName(aid)} 的提交`, u.name);
+        await loadAll(); close(); renderView(); toast('已打回','info');
+      }});
+  },
+  'del-task'(id){
+    const u = currentUser();
+    const t = cache.tasks.find(x=>x.id===id); if(!t) return;
+    openModal({ title:'删除任务', okText:'删除', html:`<div style="font-size:13px;line-height:2">确定删除「<b style="color:var(--pink)">${esc(t.title)}</b>」？</div>`,
+      async onOk(){
+        const { error } = await sb.from('tasks').delete().eq('id', id);
+        if(error){ toast('删除失败','err'); return; }
+        await log('任务', `删除任务「${t.title}」`, u.name);
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+  'task-detail'(id){
+    const t = cache.tasks.find(x=>x.id===id); if(!t) return;
+    const pri = PRI_MAP[t.priority] || PRI_MAP.normal;
+    const assigns = getTaskAssignees(id);
+    const subRows = assigns.map(s => {
+      const sc = STATUS_MAP[s.status] || STATUS_MAP.pending;
+      return `<tr>
+        <td>${esc(userName(s.user_id))} <span class="dim" style="font-size:11px">(${esc(userDept(s.user_id))})</span></td>
+        <td><span class="tag ${sc.cls}">${sc.label}</span></td>
+        <td style="font-size:12px">${esc(s.submit_note||'—')}</td>
+        <td style="font-size:12px;color:var(--orange)">${esc(s.review_note||'—')}</td>
+      </tr>`;
+    }).join('');
+    const hist = getTaskHistory(id).slice().reverse().map(h=>`<div class="log-item"><span class="t">${fmtTime(h.created_at)}</span><span class="m">${esc(h.text)} <span class="dim">— ${esc(h.by_name)}</span></span></div>`).join('') || '<div class="dim" style="font-size:12px;padding:8px">暂无记录</div>';
+    openModal({ title:'任务详情', wide:true, okText:'关闭', cancelText:'', html:`
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px"><span class="tag ${pri.cls}">${pri.label}</span><span class="tag ${STATUS_MAP[taskOverall(t)].cls}">${STATUS_MAP[taskOverall(t)].label}</span></div>
+      <div style="font-size:16px;color:var(--cyan);margin-bottom:12px">${esc(t.title)}</div>
+      <div style="font-size:13px;line-height:1.9;color:#9fb4d8;white-space:pre-wrap;margin-bottom:16px">${esc(t.description||'')}</div>
+      <div class="table-wrap" style="margin-bottom:16px"><table>
+        <thead><tr><th>成员</th><th>状态</th><th>提交说明</th><th>审核意见</th></tr></thead>
+        <tbody>${subRows}</tbody>
+      </table></div>
+      <div style="font-size:12px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">▸ 流转记录</div>${hist}` });
+  },
+
+  'batch-add'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const html = `
+      <div class="field"><label>部门</label>
+        <select id="baDept">${DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>角色</label>
+        <select id="baRole"><option value="member">普通社员</option><option value="admin">管理员</option></select>
+      </div>
+      <div class="field"><label>每行一个：账号 姓名</label>
+        <textarea id="baList" style="min-height:150px" placeholder="zhangsan 张三
+lisi 李四"></textarea>
+      </div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.9">密码统一 123456</div>`;
+    openModal({ title:'批量添加', html, okText:'创建', wide:true, async onOk(root, close){
+      const dept = root.querySelector('#baDept').value;
+      const role = root.querySelector('#baRole').value;
+      const raw = root.querySelector('#baList').value.trim();
+      if(!raw){ toast('请输入内容','err'); return false; }
+      const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+      const toInsert = [];
+      let skip = 0, err = 0;
+      for(const line of lines){
+        const m = line.match(/^(\S+)\s+(.+)$/);
+        if(!m){ err++; continue; }
+        const username = m[1].trim(), name = m[2].trim();
+        if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){ err++; continue; }
+        if(cache.users.some(x => x.username.toLowerCase() === username.toLowerCase())){ skip++; continue; }
+        toInsert.push({ username, password: DEF_PWD, name, role, dept });
+      }
+      if(!toInsert.length){ toast(`无有效行，跳过 ${skip}，错误 ${err}`, 'err'); return false; }
+      const { error } = await sb.from('users').insert(toInsert);
+      if(error){ toast('创建失败：'+error.message,'err'); return false; }
+      await log('人员', `批量添加 ${toInsert.length} 个账号到 ${dept}`, u.name);
+      await loadAll(); close(); renderView();
+      toast(`成功创建 ${toInsert.length} 个${skip?`，跳过 ${skip}`:''}${err?`，错误 ${err}`:''}`,'ok');
+    }});
+  },
+
+  'add-member'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const html = `
+      <div class="row">
+        <div class="field"><label>账号</label><input id="nmUser" autocomplete="off"></div>
+        <div class="field"><label>姓名</label><input id="nmName" autocomplete="off"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>部门</label><select id="nmDept">${DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('')}</select></div>
+        <div class="field"><label>角色</label><select id="nmRole"><option value="member">普通社员</option><option value="admin">管理员</option></select></div>
+      </div>
+      <div class="field"><label>初始密码</label><input id="nmPwd" value="${DEF_PWD}" autocomplete="off"></div>`;
+    openModal({ title:'新增账号', html, okText:'创建', wide:true, async onOk(root, close){
+      const username = root.querySelector('#nmUser').value.trim();
+      const name = root.querySelector('#nmName').value.trim();
+      const dept = root.querySelector('#nmDept').value;
+      const role = root.querySelector('#nmRole').value;
+      const pwd = root.querySelector('#nmPwd').value;
+      if(!username || !name){ toast('账号与姓名不能为空','err'); return false; }
+      if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){ toast('账号格式错误','err'); return false; }
+      if(pwd.length < 6){ toast('密码至少 6 位','err'); return false; }
+      if(cache.users.some(x=>x.username.toLowerCase()===username.toLowerCase())){ toast('账号已存在','err'); return false; }
+      const { error } = await sb.from('users').insert({ username, password:pwd, name, role, dept });
+      if(error){ toast('创建失败：'+error.message,'err'); return false; }
+      await log('人员', `新增${role==='admin'?'管理员':'社员'}：${name}（${username}）`, u.name);
+      await loadAll(); close(); renderView(); toast('创建成功','ok');
+    }});
+  },
+
+  'reset-pwd'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const m = cache.users.find(x=>x.id===id); if(!m) return;
+    openModal({ title:'重置密码', okText:'确认', html:`
+      <div style="margin-bottom:14px">为 <b style="color:var(--cyan)">${esc(m.name)}</b> 设置新密码</div>
+      <div class="field"><label>当前密码</label><input value="${esc(m.password)}" disabled></div>
+      <div class="field"><label>新密码</label><input id="rpPwd" value="${DEF_PWD}" autocomplete="off"></div>`,
+      async onOk(root, close){
+        const np = root.querySelector('#rpPwd').value;
+        if(np.length < 6){ toast('密码至少 6 位','err'); return false; }
+        const old = m.password;
+        const { error } = await sb.from('users').update({ password: np }).eq('id', id);
+        if(error){ toast('失败','err'); return false; }
+        await sb.from('password_history').insert({ user_id: id, old_pwd: old, new_pwd: np, mode:'管理员重置', by_name: u.name });
+        await log('密码', `管理员 ${u.name} 重置了 ${m.name} 的密码`, u.name);
+        await loadAll(); close(); renderView(); toast('已重置','ok');
+      }});
+  },
+
+  'toggle-active'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const m = cache.users.find(x=>x.id===id); if(!m) return;
+    if(m.id===u.id){ toast('不能禁用当前账号','err'); return; }
+    (async () => {
+      const { error } = await sb.from('users').update({ active: !m.active }).eq('id', id);
+      if(error){ toast('失败','err'); return; }
+      await log('人员', `${m.active?'禁用':'启用'} ${m.name}`, u.name);
+      await loadAll(); renderView();
+      toast(m.active?'已禁用':'已启用','info');
+    })();
+  },
+
+  'del-member'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const m = cache.users.find(x=>x.id===id); if(!m) return;
+    if(m.id===u.id){ toast('不能删除当前账号','err'); return; }
+    openModal({ title:'删除账号', okText:'删除', html:`<div style="font-size:13px;line-height:2">确定删除 <b style="color:var(--pink)">${esc(m.name)}（${esc(m.username)}）</b>？</div>`,
+      async onOk(){
+        const { error } = await sb.from('users').delete().eq('id', id);
+        if(error){ toast('删除失败：'+error.message,'err'); return; }
+        await log('人员', `删除账号 ${m.name}`, u.name);
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'new-announce'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    openModal({ title:'发布公告', okText:'发布', html:`
+      <div class="field"><label>标题</label><input id="anTitle"></div>
+      <div class="field"><label>内容</label><textarea id="anContent" style="min-height:120px"></textarea></div>`,
+      async onOk(root, close){
+        const title = root.querySelector('#anTitle').value.trim();
+        const content = root.querySelector('#anContent').value.trim();
+        if(!title || !content){ toast('标题和内容不能为空','err'); return false; }
+        const { error } = await sb.from('announcements').insert({ title, content, author: u.name });
+        if(error){ toast('失败','err'); return false; }
+        await log('公告', `发布公告「${title}」`, u.name);
+        await loadAll(); close(); renderView(); toast('已发布','ok');
+      }});
+  },
+  'del-announce'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    openModal({ title:'删除公告', okText:'删除', html:`<div style="font-size:13px;line-height:2">确定删除？</div>`,
+      async onOk(){
+        const { error } = await sb.from('announcements').delete().eq('id', id);
+        if(error){ toast('失败','err'); return; }
+        await loadAll(); renderView(); toast('已删除','info');
+      }});
+  },
+
+  'clear-logs'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    openModal({ title:'清空日志', okText:'清空', html:'<div style="font-size:13px;line-height:2">确定清空全部操作日志？</div>',
+      async onOk(){
+        const { error } = await sb.from('logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if(error){ toast('失败','err'); return; }
+        await loadAll(); renderView(); toast('已清空','info');
+      }});
+  },
+  'cloud-refresh'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    openModal({ title:'从云端刷新', okText:'刷新', html:'<div style="font-size:13px;line-height:2">重新拉取最新数据。</div>',
+      async onOk(){ await loadAll(); renderView(); toast('已刷新','ok'); }});
+  },
+  'export-data'(){
+    const u = currentUser();
+    if(!u || u.role !== 'admin') return;
+    const data = {
+      users: cache.users, tasks: cache.tasks, task_assignees: cache.taskAssignees,
+      announcements: cache.announcements, gallery: cache.gallery, activities: cache.activities,
+      posts: cache.posts, posts_guest: cache.postsGuest,
+      cooperations: cache.cooperations, applications: cache.applications,
+      logs: cache.logs, settings: cache.settings
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Xudata_备份_${fmtDate(Date.now())}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('已导出','ok');
+  },
+
+  'do-change-pwd'(){
+    const u = currentUser();
+    if(!u) return;
+    const oldPwd = $('#oldPwd').value, n1 = $('#newPwd').value, n2 = $('#newPwd2').value;
+    if(!oldPwd || !n1 || !n2){ toast('请完整填写','err'); return; }
+    if(oldPwd !== u.password){ toast('当前密码不正确','err'); return; }
+    if(n1.length < 6){ toast('新密码至少 6 位','err'); return; }
+    if(n1 === oldPwd){ toast('新密码不能与当前相同','err'); return; }
+    if(n1 !== n2){ toast('两次输入不一致','err'); return; }
+    (async () => {
+      const old = u.password;
+      const { error } = await sb.from('users').update({ password: n1 }).eq('id', u.id);
+      if(error){ toast('修改失败','err'); return; }
+      await sb.from('password_history').insert({ user_id: u.id, old_pwd: old, new_pwd: n1, mode:'本人修改', by_name: u.name });
+      await log('密码', `${u.name} 修改了自己的密码`, u.name);
+      await loadAll();
+      toast('密码已修改','ok');
+      renderView();
+    })();
+  }
+};
+
+/* ================= 事件委托 ================= */
+document.addEventListener('click', e=>{
+  const nav = e.target.closest('[data-nav]');
+  if(nav){ switchView(nav.dataset.nav); return; }
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  if(act === 'noop') return;
+  if(act === 'task-filter'){ actions[act](el.dataset.k); return; }
+  if(act === 'filter-dept'){ actions[act](el.dataset.dept); return; }
+  if(act === 'view-img'){ actions[act](null, el); return; }
+  if(act === 'change-dept') return;
+  if(actions[act]) actions[act](el.dataset.id, el, e);
+});
+document.addEventListener('input', e=>{
+  if(e.target.id === 'taskSearchInput'){
+    taskSearch = e.target.value;
+    const pos = e.target.selectionStart;
+    renderView();
+    const inp = $('#taskSearchInput');
+    if(inp){ inp.focus(); inp.setSelectionRange(pos, pos); }
+  }
+});
+document.addEventListener('change', e=>{
+  if(e.target.dataset.act === 'change-dept'){
+    actions['change-dept'](e.target.dataset.id, e.target);
+    return;
+  }
+  if(e.target.id === 'postImgs'){
+    const files = [...(e.target.files || [])].slice(0, 4);
+    forumDraftImgs = [];
+    const prev = $('#postImgPreview');
+    if(!prev) return;
+    prev.innerHTML = '';
+    (async () => {
+      for(const f of files){
+        if(!f.type.startsWith('image/')) continue;
+        try{
+          const src = await compressImage(f, 900, 0.72);
+          forumDraftImgs.push(src);
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.cssText = 'width:80px;height:80px;object-fit:cover;border:2px solid var(--line)';
+          prev.appendChild(img);
+        }catch(err){ console.warn(err); }
+      }
+    })();
+  }
+  if(e.target.id === 'guestPostImgs'){
+    const files = [...(e.target.files || [])].slice(0, 4);
+    guestDraftImgs = [];
+    const prev = $('#guestPostImgPreview');
+    if(!prev) return;
+    prev.innerHTML = '';
+    (async () => {
+      for(const f of files){
+        if(!f.type.startsWith('image/')) continue;
+        try{
+          const src = await compressImage(f, 900, 0.72);
+          guestDraftImgs.push(src);
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.cssText = 'width:80px;height:80px;object-fit:cover;border:2px solid var(--line)';
+          prev.appendChild(img);
+        }catch(err){ console.warn(err); }
+      }
+    })();
+  }
+});
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const btn = $('#loginBtn');
+  btn.disabled = true; btn.textContent = '验证中…';
+  try{
+    const res = await doLogin($('#loginUser').value, $('#loginPass').value);
+    if(res.ok){ $('#loginForm').reset(); showApp(); toast('登录成功','ok'); }
+    else toast(res.msg,'err');
+  }catch(err){ toast('登录异常：'+err.message,'err'); }
+  finally{ btn.disabled = false; btn.textContent = '登 录'; }
+});
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeModal(); });
+
+/* ================= 启动 ================= */
+(async function boot(){
+  detectDevice();
+  window.addEventListener('resize', () => {
+    clearTimeout(window._deviceTimer);
+    window._deviceTimer = setTimeout(detectDevice, 200);
+  });
+  window.addEventListener('orientationchange', () => { setTimeout(detectDevice, 300); });
+
+  try{
+    await loadAll();
+    $('#loadingScreen').classList.remove('on');
+    $('#loginPage').classList.add('on');
+
+    const sid = localStorage.getItem('xudata_session');
+    const gst = localStorage.getItem('xudata_guest');
+    if(sid && cache.users.some(u=>u.id===sid)){
+      session = sid;
+      showApp();
+    }else if(gst === '1'){
+      enterGuest();
+    }
+
+    setInterval(async () => {
+      if(!session) return;
+      const u = currentUser();
+      if(!u || !u.active){ toast('账号已被禁用','err'); logout(); }
+    }, 30000);
+  }catch(err){
+    console.error(err);
+    $('#loadingScreen').innerHTML = '⚠ 云端连接失败：' + err.message + '<br><span style="font-size:12px;color:var(--dim)">请检查建表 SQL 是否执行、RLS 策略是否正确</span>';
+  }
+})();
+</script>
+</body>
+</html>
