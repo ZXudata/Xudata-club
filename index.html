@@ -479,6 +479,8 @@ function detectDevice(){
   document.body.classList.toggle('desktop', !isMobile);
 }
 
+let adminKey = localStorage.getItem('xudata_admin_key') || '';
+
 const cache = {
   users: [], tasks: [], taskAssignees: [], taskHistory: [],
   announcements: [], gallery: [], activities: [],
@@ -577,10 +579,23 @@ async function log(type, text, actor){
 async function doLogin(username, password){
   username = username.trim();
   if(!username || !password) return { ok:false, msg:'账号和密码不能为空' };
-  const u = cache.users.find(x => x.username.toLowerCase() === username.toLowerCase());
-  if(!u) return { ok:false, msg:'账号不存在' };
-  if(!u.active) return { ok:false, msg:'该账号已被禁用，请联系管理员' };
-  if(u.password !== password) return { ok:false, msg:'密码错误' };
+
+  const { data, error } = await sb.rpc('verify_login', {
+    p_username: username,
+    p_password: password
+  });
+
+  if(error){ console.error(error); return { ok:false, msg:'登录失败：'+error.message }; }
+  if(!data || !data.length || !data[0].ok){
+    const u = cache.users.find(x => x.username.toLowerCase() === username.toLowerCase());
+    if(!u) return { ok:false, msg:'账号不存在' };
+    if(!u.active) return { ok:false, msg:'该账号已被禁用，请联系管理员' };
+    return { ok:false, msg:'密码错误' };
+  }
+
+  const u = cache.users.find(x => x.id === data[0].user_id);
+  if(!u || !u.active) return { ok:false, msg:'该账号已被禁用' };
+
   session = u.id;
   guestMode = false;
   localStorage.setItem('xudata_session', u.id);
@@ -650,6 +665,33 @@ function showApp(){
   $('#avatarBox').textContent = (u.name || u.username).slice(0,1);
   $('#topName').textContent = u.name;
   $('#topRole').innerHTML = u.role==='admin' ? '<span class="tag pink">管理员</span>' : '<span class="tag cyan">社员</span>';
+
+  if(u.role === 'admin' && !adminKey){
+    setTimeout(() => {
+      openModal({
+        title: '🔑 管理员密钥',
+        okText: '保存', cancelText: '稍后',
+        html: `
+          <div style="font-size:13px;line-height:2;margin-bottom:14px">
+            请输入你的管理员密钥（用于查看社员密码）。
+            <br><span style="color:var(--yellow)">只存本机浏览器，不会上传。</span>
+          </div>
+          <div class="field">
+            <input id="adminKeyInput" placeholder="粘贴 64 位密钥" autocomplete="off">
+          </div>`,
+        onOk(root){
+          const k = root.querySelector('#adminKeyInput').value.trim();
+          if(k && k.length >= 16){
+            adminKey = k;
+            localStorage.setItem('xudata_admin_key', k);
+            toast('密钥已保存', 'ok');
+            renderView();
+          }
+        }
+      });
+    }, 500);
+  }
+
   $('#sidebar').innerHTML = NAV_ITEMS.map(it=>{
     if(it.sep) return '<div class="nav-sep"></div>';
     if(!it.roles.includes(u.role)) return '';
@@ -1153,7 +1195,11 @@ function viewMembers(u){
       </td>
       <td>${m.role==='admin'?'<span class="tag pink">管理员</span>':'<span class="tag cyan">社员</span>'}</td>
       <td>${m.active?'<span class="tag green">正常</span>':'<span class="tag red">已禁用</span>'}</td>
-      <td class="mono pwd-new">${esc(m.password)}</td>
+      <td class="mono" style="font-size:11px">
+        ${adminKey
+          ? `<span class="dim">••••••</span> <button class="btn sm ghost" data-act="show-pwd" data-id="${m.id}" style="font-size:10px;padding:1px 5px">👁 查看</button>`
+          : `<span class="dim">••••••（需密钥）</span>`}
+      </td>
       <td style="white-space:nowrap">
         <button class="btn sm" data-act="reset-pwd" data-id="${m.id}">改密</button>
         <button class="btn sm ${m.active?'ghost':'green'}" data-act="toggle-active" data-id="${m.id}">${m.active?'禁用':'启用'}</button>
@@ -1344,10 +1390,30 @@ async function uploadDataUrl(dataUrl, prefix){
   const { data: pub } = sb.storage.from('gallery').getPublicUrl(fileName);
   return pub.publicUrl;
 }
-
 /* ================= 业务操作 ================= */
 const actions = {
   'enter-guest'(){ enterGuest(); },
+
+  'show-pwd'(id){
+    const u = currentUser();
+    if(!u || u.role !== 'admin'){ toast('只有管理员可查看','err'); return; }
+    if(!adminKey){ toast('未设置管理员密钥','err'); return; }
+    const m = cache.users.find(x=>x.id===id); if(!m) return;
+    (async () => {
+      const { data, error } = await sb.rpc('decrypt_text', { cipher: m.password, admin_key: adminKey });
+      if(error){ toast('解密失败：'+error.message,'err'); return; }
+      openModal({
+        title: '密码明文', okText: '关闭', cancelText: '',
+        html: `
+          <div style="font-size:13px;line-height:2">
+            <b style="color:var(--cyan)">${esc(m.name)}</b>（@${esc(m.username)}）的当前密码：
+          </div>
+          <div style="margin-top:14px;padding:14px;background:#0a0f1c;border:2px solid var(--yellow);font-family:monospace;font-size:16px;color:var(--yellow);text-align:center">${esc(data || '解密失败')}</div>
+          <div style="font-size:11.5px;color:var(--dim);line-height:1.9;margin-top:14px">⚠ 请勿泄露。密码只在本机解密。</div>`
+      });
+    })();
+  },
+
   'logout'(){ openModal({ title:'退出登录', html:'<div style="font-size:13px;line-height:2">确定退出？</div>', okText:'退出', onOk(){ logout(); } }); },
   'task-filter'(k){ taskFilter = k; renderView(); },
   'filter-dept'(dept){ memberDeptFilter = dept || 'all'; renderView(); },
@@ -1925,11 +1991,19 @@ lisi 李四"></textarea>
         toInsert.push({ username, password: DEF_PWD, name, role, dept });
       }
       if(!toInsert.length){ toast(`无有效行，跳过 ${skip}，错误 ${err}`, 'err'); return false; }
-      const { error } = await sb.from('users').insert(toInsert);
-      if(error){ toast('创建失败：'+error.message,'err'); return false; }
-      await log('人员', `批量添加 ${toInsert.length} 个账号到 ${dept}`, u.name);
+      let created = 0;
+      for(const item of toInsert){
+        const { error } = await sb.rpc('create_user', {
+          p_username: item.username, p_password: item.password,
+          p_name: item.name, p_role: item.role, p_dept: item.dept,
+          p_admin_key: adminKey
+        });
+        if(!error) created++;
+      }
+      if(!created){ toast('全部创建失败', 'err'); return false; }
+      await log('人员', `批量添加 ${created} 个账号到 ${dept}`, u.name);
       await loadAll(); close(); renderView();
-      toast(`成功创建 ${toInsert.length} 个${skip?`，跳过 ${skip}`:''}${err?`，错误 ${err}`:''}`,'ok');
+      toast(`成功创建 ${created} 个${skip?`，跳过 ${skip}`:''}${err?`，错误 ${err}`:''}`,'ok');
     }});
   },
 
@@ -1956,7 +2030,10 @@ lisi 李四"></textarea>
       if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){ toast('账号格式错误','err'); return false; }
       if(pwd.length < 6){ toast('密码至少 6 位','err'); return false; }
       if(cache.users.some(x=>x.username.toLowerCase()===username.toLowerCase())){ toast('账号已存在','err'); return false; }
-      const { error } = await sb.from('users').insert({ username, password:pwd, name, role, dept });
+      const { error } = await sb.rpc('create_user', {
+        p_username: username, p_password: pwd, p_name: name,
+        p_role: role, p_dept: dept, p_admin_key: adminKey
+      });
       if(error){ toast('创建失败：'+error.message,'err'); return false; }
       await log('人员', `新增${role==='admin'?'管理员':'社员'}：${name}（${username}）`, u.name);
       await loadAll(); close(); renderView(); toast('创建成功','ok');
@@ -1969,15 +2046,19 @@ lisi 李四"></textarea>
     const m = cache.users.find(x=>x.id===id); if(!m) return;
     openModal({ title:'重置密码', okText:'确认', html:`
       <div style="margin-bottom:14px">为 <b style="color:var(--cyan)">${esc(m.name)}</b> 设置新密码</div>
-      <div class="field"><label>当前密码</label><input value="${esc(m.password)}" disabled></div>
+      <div class="field"><label>当前密码</label><input value="（已加密）" disabled></div>
       <div class="field"><label>新密码</label><input id="rpPwd" value="${DEF_PWD}" autocomplete="off"></div>`,
       async onOk(root, close){
         const np = root.querySelector('#rpPwd').value;
         if(np.length < 6){ toast('密码至少 6 位','err'); return false; }
-        const old = m.password;
-        const { error } = await sb.from('users').update({ password: np }).eq('id', id);
-        if(error){ toast('失败','err'); return false; }
-        await sb.from('password_history').insert({ user_id: id, old_pwd: old, new_pwd: np, mode:'管理员重置', by_name: u.name });
+        const { error } = await sb.rpc('admin_set_password', {
+          p_user_id: id, p_new_password: np, p_admin_key: adminKey
+        });
+        if(error){ toast('失败：'+error.message,'err'); return false; }
+        await sb.from('password_history').insert({
+          user_id: id, old_pwd: '(hash)', new_pwd: '(hash)',
+          mode: '管理员重置', by_name: u.name
+        });
         await log('密码', `管理员 ${u.name} 重置了 ${m.name} 的密码`, u.name);
         await loadAll(); close(); renderView(); toast('已重置','ok');
       }});
@@ -2077,15 +2158,15 @@ lisi 李四"></textarea>
     if(!u) return;
     const oldPwd = $('#oldPwd').value, n1 = $('#newPwd').value, n2 = $('#newPwd2').value;
     if(!oldPwd || !n1 || !n2){ toast('请完整填写','err'); return; }
-    if(oldPwd !== u.password){ toast('当前密码不正确','err'); return; }
     if(n1.length < 6){ toast('新密码至少 6 位','err'); return; }
     if(n1 === oldPwd){ toast('新密码不能与当前相同','err'); return; }
     if(n1 !== n2){ toast('两次输入不一致','err'); return; }
     (async () => {
-      const old = u.password;
-      const { error } = await sb.from('users').update({ password: n1 }).eq('id', u.id);
-      if(error){ toast('修改失败','err'); return; }
-      await sb.from('password_history').insert({ user_id: u.id, old_pwd: old, new_pwd: n1, mode:'本人修改', by_name: u.name });
+      const { data, error } = await sb.rpc('change_own_password', {
+        p_user_id: u.id, p_old_password: oldPwd,
+        p_new_password: n1, p_admin_key: adminKey
+      });
+      if(error || !data){ toast('当前密码不正确','err'); return; }
       await log('密码', `${u.name} 修改了自己的密码`, u.name);
       await loadAll();
       toast('密码已修改','ok');
@@ -2106,6 +2187,7 @@ document.addEventListener('click', e=>{
   if(act === 'filter-dept'){ actions[act](el.dataset.dept); return; }
   if(act === 'view-img'){ actions[act](null, el); return; }
   if(act === 'change-dept') return;
+  if(act === 'show-pwd'){ actions[act](el.dataset.id); return; }
   if(actions[act]) actions[act](el.dataset.id, el, e);
 });
 document.addEventListener('input', e=>{
