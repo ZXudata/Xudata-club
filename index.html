@@ -479,6 +479,8 @@ function detectDevice(){
   document.body.classList.toggle('desktop', !isMobile);
 }
 
+let sessionAdminPwd = '';
+
 const cache = {
   users: [], tasks: [], taskAssignees: [], taskHistory: [],
   announcements: [], gallery: [], activities: [],
@@ -598,12 +600,15 @@ async function doLogin(username, password){
   guestMode = false;
   localStorage.setItem('xudata_session', u.id);
   localStorage.removeItem('xudata_guest');
+  // 管理员密码暂存内存（仅本次会话有效，刷新页面后需重新登录）
+  sessionAdminPwd = password;
   await log('登录', `用户 ${u.name}（${u.username}）登录系统`, u.name);
   return { ok:true };
 }
 function enterGuest(){
   session = null;
   guestMode = true;
+  sessionAdminPwd = '';
   localStorage.setItem('xudata_guest', '1');
   localStorage.removeItem('xudata_session');
   currentView = 'gallery';
@@ -615,6 +620,7 @@ async function logout(){
   if(u){ await log('登录', `用户 ${u.name} 退出系统`, u.name); }
   session = null;
   guestMode = false;
+  sessionAdminPwd = '';
   localStorage.removeItem('xudata_session');
   localStorage.removeItem('xudata_guest');
   $('#appPage').classList.remove('on');
@@ -1980,6 +1986,7 @@ lisi 李四"></textarea>
       const role = root.querySelector('#baRole').value;
       const raw = root.querySelector('#baList').value.trim();
       if(!raw){ toast('请输入内容','err'); return false; }
+      if(!sessionAdminPwd){ toast('会话已过期，请重新登录','err'); return false; }
       const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
       const toInsert = [];
       let skip = 0, err = 0;
@@ -1996,7 +2003,9 @@ lisi 李四"></textarea>
       for(const item of toInsert){
         const { error } = await sb.rpc('create_user', {
           p_username: item.username, p_password: item.password,
-          p_name: item.name, p_role: item.role, p_dept: item.dept
+          p_name: item.name, p_role: item.role, p_dept: item.dept,
+          p_admin_username: u.username,
+          p_admin_password: sessionAdminPwd
         });
         if(!error) created++;
       }
@@ -2030,9 +2039,12 @@ lisi 李四"></textarea>
       if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){ toast('账号格式错误','err'); return false; }
       if(pwd.length < 6){ toast('密码至少 6 位','err'); return false; }
       if(cache.users.some(x=>x.username.toLowerCase()===username.toLowerCase())){ toast('账号已存在','err'); return false; }
+      if(!sessionAdminPwd){ toast('会话已过期，请重新登录','err'); return false; }
       const { error } = await sb.rpc('create_user', {
         p_username: username, p_password: pwd, p_name: name,
-        p_role: role, p_dept: dept
+        p_role: role, p_dept: dept,
+        p_admin_username: u.username,
+        p_admin_password: sessionAdminPwd
       });
       if(error){ toast('创建失败：'+error.message,'err'); return false; }
       await log('人员', `新增${role==='admin'?'管理员':'社员'}：${name}（${username}）`, u.name);
@@ -2051,8 +2063,11 @@ lisi 李四"></textarea>
       async onOk(root, close){
         const np = root.querySelector('#rpPwd').value;
         if(np.length < 6){ toast('密码至少 6 位','err'); return false; }
+        if(!sessionAdminPwd){ toast('会话已过期，请重新登录','err'); return false; }
         const { error } = await sb.rpc('admin_set_password', {
-          p_user_id: id, p_new_password: np
+          p_user_id: id, p_new_password: np,
+          p_admin_username: u.username,
+          p_admin_password: sessionAdminPwd
         });
         if(error){ toast('失败：'+error.message,'err'); return false; }
         await sb.from('password_history').insert({
@@ -2167,6 +2182,8 @@ lisi 李四"></textarea>
       });
       if(error){ toast('修改失败：'+error.message,'err'); return; }
       if(!data){ toast('当前密码不正确','err'); return; }
+      // 更新内存里的管理员密码（如果改的是当前登录用户自己）
+      sessionAdminPwd = n1;
       await log('密码', `${u.name} 修改了自己的密码`, u.name);
       await loadAll();
       toast('密码已修改','ok');
